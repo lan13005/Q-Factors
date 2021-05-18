@@ -1,0 +1,213 @@
+#ifndef GETSBWEIGHT_H
+#define GETSBWEIGHT_H
+
+#include <iostream>
+#include "./auxilliary/drawPlots/drawPlots.h"
+#include "configSettings.h"
+#include "TCanvas.h"
+#include <RooAbsReal.h>
+#include <RooRealVar.h>
+#include <RooDataSet.h>
+#include <RooDataHist.h>
+#include <RooGenericPdf.h>
+#include <RooGaussian.h>
+#include <RooAddPdf.h>
+#include <RooProdPdf.h>
+#include <RooConstVar.h>
+#include <RooArgList.h>
+#include <RooPlot.h>
+#include <RooMinuit.h>
+#include <RooFitResult.h>
+#include <RooChi2Var.h>
+#include <RooWorkspace.h>
+#include <RooMinimizer.h>
+#include "RooTrace.h"
+//#include "RooAddPdf.h"
+//#include "RooFormulaVar.h"
+
+using namespace std;
+
+class fitManager
+{
+    //////////////////////////////////////////////////////////////////////
+    // 1. Need to define the values to initialize the fits with and the RooFit variables/PDFs
+    // 2. Need to define a way to reinitialize the PDFs
+    // 3. Need to define a way to calculate the q-factor
+    // 4. Need to define how you want to insert the data into the dataset
+    // 5. (DEFAULTS PROBABLY FINE) Need to define how you want to fit the PDFs to the dataset
+    //////////////////////////////////////////////////////////////////////
+    public:
+        // DEFINE VALUES TO INITIALIZE ROOFIT VARIABLES WITH
+        float initMassX = 0.135059;
+        float initMassY = 0.549354;
+        float initSigmaX = 0.00612767;
+        float initSigmaY = 0.0166494;
+        float initBernA = 0.5;
+        float initBernB = 0.5;
+        float initBernC = 0.5;
+        float initBernD = 0.5;
+        float initBernE = 0.5;
+        float initbkgPeakFrac=1;
+        std::vector<float> fitRangeY={0.36,0.75};
+        std::vector<float> fitRangeX={0.085,0.185};
+
+        ///////////////////////////////
+        // DEFINE VARIABLES FOR DATASET
+        ///////////////////////////////
+        float eff_nentries;
+        RooRealVar* roo_Meta;
+        RooRealVar* roo_Mpi0;
+        RooRealVar* roo_Weight;
+        RooDataSet* rooData;
+        ////////////////////////
+        // DEFINE THE SIGNAL PDF
+        ////////////////////////
+        RooRealVar* peak_pi0;
+        RooRealVar* width_pi0;
+        RooRealVar* peak_eta;
+        RooRealVar* width_eta;
+        RooGaussian* rooGausPi0;
+        RooGaussian* rooGausEta;
+        RooProdPdf* rooSig;
+        ////////////////////////
+        // DEFINE THE BKG PDF
+        ////////////////////////
+        RooRealVar* bern_parA;
+        RooRealVar* bern_parB;
+        RooRealVar* bern_parC;
+        RooRealVar* bern_parD;
+        RooGenericPdf* rooBkgX;
+        RooGenericPdf* rooBkgY;
+        RooGaussian* rooGausPi0_bkg;
+        RooRealVar* bkgPeakFrac;
+        RooAddPdf* rooBkgXplusPi0Peak;
+        RooProdPdf* rooBkg;
+        ////////////////////////
+        // DEFINE THE TOTAL PDF
+        ////////////////////////
+        RooRealVar* nsig;
+        RooRealVar* nbkg;
+        RooAddPdf* rooSigPlusBkg;
+        
+	fitManager(string iProcess){ 
+            /////////////// VARIABLES
+            roo_Meta = new RooRealVar{("roo_Meta_"+iProcess).c_str(),"Mass GeV",(fitRangeY[1]-fitRangeY[0])/2+fitRangeY[0],fitRangeY[0],fitRangeY[1]};
+            roo_Meta->setRange(("roo_fitRangeMeta_"+iProcess).c_str(),fitRangeY[0], fitRangeY[1]);
+            roo_Meta->setBins(100);
+            roo_Mpi0 = new RooRealVar{("roo_Mpi0_"+iProcess).c_str(),"Mass GeV",(fitRangeX[1]-fitRangeX[0])/2+fitRangeX[0],fitRangeX[0],fitRangeX[1]};
+            roo_Mpi0->setRange(("roo_fitRangeMpi0_"+iProcess).c_str(),fitRangeX[0], fitRangeX[1]);
+            roo_Mpi0->setBins(100);
+            roo_Weight = new RooRealVar{("roo_Weight_"+iProcess).c_str(), "Weight", 0, -10, 10}; // Weights can take a wide range
+            rooData = new RooDataSet{("rooData"+iProcess).c_str(),"rooData",RooArgSet(*roo_Mpi0,*roo_Meta,*roo_Weight),RooFit::WeightVar(*roo_Weight)};
+            /////////////// FOR SIGNAL PDF
+            peak_pi0 = new RooRealVar{("peak_pi0_"+iProcess).c_str(),"peak_pi0",initMassX};
+            width_pi0 = new RooRealVar{("width_pi0_"+iProcess).c_str(),"width_pi0",initSigmaX,initSigmaX*0.5,initSigmaX*1.5};
+            peak_eta = new RooRealVar{("peak_eta_"+iProcess).c_str(),"peak_eta",initMassY};
+            width_eta = new RooRealVar{("width_eta_"+iProcess).c_str(),"width_eta",initSigmaY,initSigmaY*0.5,initSigmaY*1.5};
+            rooGausPi0 = new RooGaussian{("rooGausPi0_"+iProcess).c_str(), "rooGausPi0", *roo_Mpi0, *peak_pi0, *width_pi0};
+            rooGausEta = new RooGaussian{("rooGausEta_"+iProcess).c_str(), "rooGausEta", *roo_Meta, *peak_eta, *width_eta};
+            /////////////// FOR BKG PDF
+            bern_parA = new RooRealVar{("bern_parA_"+iProcess).c_str(),"bern_parA",0.5,0,1};
+            bern_parB = new RooRealVar{("bern_parB_"+iProcess).c_str(),"bern_parB",0.5,0,1};
+            bern_parC = new RooRealVar{("bern_parC_"+iProcess).c_str(),"bern_parC",0.5,0,1};
+            bern_parD = new RooRealVar{("bern_parD_"+iProcess).c_str(),"bern_parD",0.5,0,1};
+            rooBkgY = new RooGenericPdf{("rooBkgY_"+iProcess).c_str(), "rooBkgY"
+                ,("bern_parC_"+iProcess+"*roo_Meta_"+iProcess+"+bern_parD_"+iProcess+"*(1-roo_Meta_"+iProcess+")").c_str()
+                ,RooArgSet(*bern_parC,*bern_parD,*roo_Meta)};
+            rooGausPi0_bkg = new RooGaussian{("rooGausPi0_bkg_"+iProcess).c_str(), "rooGausPi0_bkg", *roo_Mpi0, *peak_pi0, *width_pi0};
+            rooBkgX = new RooGenericPdf(("rooBkgX_"+iProcess).c_str(), "rooBkgX"
+                ,("bern_parA_"+iProcess+"*roo_Mpi0_"+iProcess+"+bern_parB_"+iProcess+"*(1-roo_Mpi0_"+iProcess+")").c_str()
+                ,RooArgSet(*bern_parA,*bern_parB,*roo_Mpi0));
+            bkgPeakFrac = new RooRealVar{("bkgPeakFrac_"+iProcess).c_str(),"bkgPeakFrac",0.5,0,1};
+            rooBkgXplusPi0Peak = new RooAddPdf{("rooBkgXplusPi0Peak_"+iProcess).c_str(), "rooBkgXplusPi0Peak", RooArgList(*rooGausPi0_bkg,*rooBkgX),RooArgSet(*bkgPeakFrac)};
+            /////////////// FOR YIELDS
+            nsig = new RooRealVar{("nsig_"+iProcess).c_str(),"nsig",(float)kDim/2,0,(float)kDim};
+            nbkg = new RooRealVar{("nbkg_"+iProcess).c_str(),"nbkg",(float)kDim/2,0,(float)kDim};
+            /////////////// CREATING FINAL PDFS
+            // THE NAMES rooSig, rooBkg, rooSigPlusBkg CANNOT CHANGE
+            rooSig = new RooProdPdf{("rooSig_"+iProcess).c_str(), "rooSig", RooArgSet(*rooGausPi0,*rooGausEta)};
+            rooBkg = new RooProdPdf{("rooBkg_"+iProcess).c_str(),"rooBkg",RooArgList(*rooBkgXplusPi0Peak,*rooBkgY)};
+            rooSigPlusBkg = new RooAddPdf{("rooSumPdf_"+iProcess).c_str(), "rooSumPdf", RooArgList(*rooSig,*rooBkg),RooArgSet(*nsig,*nbkg)};
+            // THE NAMES rooSig, rooBkg, rooSigPlusBkg CANNOT CHANGE
+            //////////////
+        }
+
+        void reinitialize(float initSigFrac){
+            peak_pi0->setVal(initMassX);
+            peak_eta->setVal(initMassY);
+            width_pi0->setVal(initSigmaX);
+            width_eta->setVal(initSigmaY);
+            bern_parA->setVal(initBernA);
+            bern_parB->setVal(initBernB);
+            bern_parC->setVal(initBernC);
+            bern_parD->setVal(initBernD);
+            bkgPeakFrac->setVal(initbkgPeakFrac);
+            eff_nentries = rooData->sumEntries();
+            nsig->setVal(initSigFrac*eff_nentries);
+            nbkg->setVal((1-initSigFrac)*eff_nentries);
+        }
+
+        float calculate_q(vector<vector<float>> &vect, int neighborIdx){
+            roo_Mpi0->setVal(vect[0][neighborIdx]);
+            roo_Meta->setVal(vect[1][neighborIdx]);
+            float sigFrac = nsig->getVal()/(nsig->getVal()+nbkg->getVal());
+            float sigPdfVal = sigFrac*rooSig->getVal(RooArgSet(*roo_Mpi0,*roo_Meta));
+            float bkgPdfVal = (1-sigFrac)*rooBkg->getVal(RooArgSet(*roo_Mpi0,*roo_Meta));
+            float totPdfVal = rooSigPlusBkg->getVal(RooArgSet(*roo_Mpi0,*roo_Meta));
+            float qvalue = sigPdfVal/(sigPdfVal+bkgPdfVal);
+            cout << "postFit(Q=" << qvalue << ") - nsig: " << nsig->getVal() << " || nbkg: " << nbkg->getVal() << endl;
+            return qvalue;
+        }
+
+        bool insert(vector<vector<float>> &vect, int neighborIdx, float weight){
+            // with 600 neighbors it seems like the fitTo command takes ~2x longer when using Range() argument which selects the fit range.
+            // This is equivalent to shrinking the dataset range and fitting over the full range which will save time.
+            // It might be useful to think of setting a fit range as to lower the effective number of nearest neighbors. Another thing that lowers
+            // the effective number of neighbors is any weights we apply to the filling of the histograms
+            float x = vect[0][neighborIdx];
+            float y = vect[1][neighborIdx];
+            bool keptNeighbor = ( y > fitRangeY[0] && 
+                                  y < fitRangeY[1] &&
+                                  x > fitRangeX[0] &&
+                                  x < fitRangeX[1] );
+            if (keptNeighbor){
+                roo_Mpi0->setVal(x);
+                roo_Meta->setVal(y);
+                roo_Weight->setVal(weight);
+                // roo_Weight will get overwritten here when adding to RooDataSet but actually does not pick up the value. So we cannot use 
+                // roo_Weight.getVal() but the dataset will be weighted: https://root-forum.cern.ch/t/fit-to-a-weighted-unbinned-data-set/33495
+                rooData->add(RooArgSet(*roo_Mpi0,*roo_Meta,*roo_Weight),weight);
+            }
+            return keptNeighbor;
+        }
+
+        RooArgSet* getParameters(){ 
+            // Grabs the parameters of the fig function. Your discriminating variables are not parameters
+            return rooSigPlusBkg->getParameters(RooArgList(*roo_Mpi0,*roo_Meta));
+        }
+
+        void drawFitPlots(vector<vector<float>> &vect, int neighborIdx, TCanvas* c){
+            draw2DPlots(roo_Mpi0, roo_Meta, vect, neighborIdx, eff_nentries, 
+                            rooSigPlusBkg, rooBkg, rooSig, rooData, nsig, nbkg, c);//, model_hist, model_sig, model_bkg);
+            //draw1DPlots(roo_Meta, vect, neighborIdx, eff_nentries, 
+            //                rooSigPlusBkg, rooBkg, rooSig, rooData, nsig, nbkg, c);//, model_hist, model_sig, model_bkg);
+        }
+
+        RooFitResult* fit(){
+            // Looked in multiple places and Moneta always says you cant use Minos with weighted data but should just use SumW2Errors. If I dont
+            //   use Minos then nsig+nbkg doesnt even sum to the orignal entries...
+            //   lets not use minos for now since it significantly speeds things up. Bootstrapping might help alleviate this problem
+            //   https://root-forum.cern.ch/t/parameter-uncertainties-by-rooabspdf-fitto-for-weighted-data-depend-on-minos-option-if-sumw2error-is-set-too/39599/4
+            //   https://root.cern.ch/doc/master/rf611__weightedfits_8C.html
+            return  rooSigPlusBkg->fitTo(*rooData, 
+                    RooFit::Save(), 
+                    RooFit::PrintLevel(-1), 
+                    RooFit::BatchMode(true), 
+                    RooFit::SumW2Error(true)
+                    //AsymptoticError(true)), 
+                    //Hesse(kFALSE));
+                    );
+        }
+};
+
+#endif
