@@ -237,7 +237,7 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
         # ----- Dumb Multiprocessing 
         _SET_iProcess=0;
         print("Launching processes one second apart...")
-        time.sleep(3)
+        time.sleep(1)
         outLogs=[]
         errLogs=[]
         openProcesses=[]
