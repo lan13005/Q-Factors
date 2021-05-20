@@ -1,6 +1,7 @@
 // This program loads data from postQ root file and draws a bunch of histograms
 #include "makePlots.h"
 #include "configSettings.h"
+#include "./auxilliary/helperFuncs.h"
 
 vector<string> histsToMake={
     "Meta",
@@ -62,21 +63,34 @@ void makePlots(){
 
         // SETUP VARIALBES FOR WEIGHTING
         cout << "LOADING WEIGHTING BRANCHES" << endl;
-        float sbWeight;
-        float accWeight;
+        double sbWeight;
+        double accWeight;
+        float sbWeight_f;
+        float accWeight_f;
         std::vector<float> accWeights; accWeights.reserve(nentries); 
 	std::vector<float> sbWeights; sbWeights.reserve(nentries);
+        string sbWeightType;
+        string accWeightType;
+
         if(!s_accWeight.empty()){
             cout << "Using accidental weight branch" << endl;
-            dataTree->SetBranchAddress(s_accWeight.c_str(),&accWeight);
+            accWeightType=setBranchAddress(dataTree, s_accWeight, &accWeight_f, &accWeight);
+            //dataTree->SetBranchAddress(s_accWeight.c_str(),&accWeight);
+            //typeName=dataTree->GetLeaf(s_accWeight.c_str())->GetTypeName();
+            //if (typeName=="Float_t")
+            //    dataTree->SetBranchAddress(s_accWeight.c_str(),&accWeight_f);
+            //if (typeName=="Double_t")
+            //    dataTree->SetBranchAddress(s_accWeight.c_str(),&accWeight);
         }
         else{
             cout << "Not using accidental weights" << endl;
-            accWeight=1;
+            accWeight_f=1;
+            accWeightType="Float_t";
         }
         if(!s_sbWeight.empty()){
             cout << "Using sideband weight branch" << endl;
-            dataTree->SetBranchAddress(s_sbWeight.c_str(),&sbWeight);
+            sbWeightType=setBranchAddress(dataTree, s_sbWeight, &sbWeight_f, &sbWeight);
+            //dataTree->SetBranchAddress(s_sbWeight.c_str(),&sbWeight);
         }
         else{
             cout << "Not using sideband weights" << endl;
@@ -104,15 +118,19 @@ void makePlots(){
             branchesToGet.insert(s);
         }
         cout << "LOADING THE BRANCHES TO PLOT: "<< endl;
-        vector<float> value(branchesToGet.size(),0);
+        string typeName;
+        vector<string> typeNames;
+        vector<double> value(branchesToGet.size(),0);
+        vector<float> value_f(branchesToGet.size(),0);
         vector<float> minValue(branchesToGet.size(),DBL_MAX);
         vector<float> maxValue(branchesToGet.size(),DBL_MIN);
         vector<vector<float>> values;
         map<string,int> nameToIdx;
         int i=0;
         for (auto s: branchesToGet){
-            cout << s << endl;
-            dataTree->SetBranchAddress(s.c_str(),&value[i]);
+            //dataTree->SetBranchAddress(s.c_str(),&value[i]);
+            typeName=setBranchAddress(dataTree, s, &value_f[i], &value[i]);
+            typeNames.push_back(typeName);
             nameToIdx[s]=i;
             values.push_back(vector<float>{});
             values[i].reserve(nentries);
@@ -124,8 +142,14 @@ void makePlots(){
 	{
 		dataTree->GetEntry(ientry);
 
-                accWeights.push_back(accWeight);
-		sbWeights.push_back(sbWeight);
+                if (accWeightType=="Float_t")
+                    accWeights.push_back(accWeight_f);
+                if (accWeightType=="Double_t")
+                    accWeights.push_back(accWeight);
+                if (sbWeightType=="Float_t")
+		    sbWeights.push_back(sbWeight_f);
+                if (sbWeightType=="Double_t")
+		    sbWeights.push_back(sbWeight);
 
 		qvalues.push_back(qvalue);
 		bestNLLs.push_back(bestNLL);
@@ -137,11 +161,17 @@ void makePlots(){
                 neighborses.push_back(copyableNeighbors);
 
                 for (int j=0; j<(int)branchesToGet.size(); ++j){
-                    values[j].push_back(value[j]);
-                    if (value[j] < minValue[j])
-                        minValue[j]=value[j];
-                    if (value[j] > maxValue[j])
-                        maxValue[j]=value[j];
+                    if(typeNames[j]=="Float_t"){
+                        values[j].push_back(value_f[j]);
+                    }
+                    if(typeNames[j]=="Double_t"){
+                        value_f[j]=value[j]; // if the type was float we can copy the double version over first
+                        values[j].push_back(value_f[j]);
+                    }
+                    if (value_f[j] < minValue[j])
+                        minValue[j]=value_f[j];
+                    if (value_f[j] > maxValue[j])
+                        maxValue[j]=value_f[j];
                 }
 	}
 
@@ -173,8 +203,8 @@ void makePlots(){
                 hists1D_tot.push_back(new TH1F((varToPlot[0]+"_tot").c_str(),("tot;"+varToPlot[0]).c_str(),75,minVal,maxVal));
                 hists1D_sig.push_back(new TH1F((varToPlot[0]+"_sig").c_str(),("sig;"+varToPlot[0]).c_str(),75,minVal,maxVal));
                 hists1D_bkg.push_back(new TH1F((varToPlot[0]+"_bkg").c_str(),("bkg;"+varToPlot[0]).c_str(),75,minVal,maxVal));
-                hists1D_sig_sb.push_back(new TH1F((varToPlot[0]+"_sig_sb").c_str(),("sig_sb;"+varToPlot[0]).c_str(),75,minVal,maxVal));
-                hists1D_bkg_sb.push_back(new TH1F((varToPlot[0]+"_bkg_sb").c_str(),("bkg_sb;"+varToPlot[0]).c_str(),75,minVal,maxVal));
+                hists1D_sig_sb.push_back(new TH1F((varToPlot[0]+"_sb_sig").c_str(),("sb_sig;"+varToPlot[0]).c_str(),75,minVal,maxVal));
+                hists1D_bkg_sb.push_back(new TH1F((varToPlot[0]+"_sb_bkg").c_str(),("sb_bkg;"+varToPlot[0]).c_str(),75,minVal,maxVal));
                 mapVarsToPlotToIdx[varToPlot[0]]=idx1D;
                 cout << "Setting " << varToPlot[0] << " to match with " << idx1D << endl;
                 ++idx1D;
@@ -191,9 +221,11 @@ void makePlots(){
                 hists2D_bkg.push_back(
                         new TH2F((varToPlot[0]+"Vs"+varToPlot[1]+"_bkg").c_str(),("bkg;"+varToPlot[0]+";"+varToPlot[1]).c_str(),75,minVal1,maxVal1,75,minVal2,maxVal2));
                 hists2D_sig_sb.push_back(
-                        new TH2F((varToPlot[0]+"Vs"+varToPlot[1]+"_sig_sb").c_str(),("sig_sb;"+varToPlot[0]+";"+varToPlot[1]).c_str(),75,minVal1,maxVal1,75,minVal2,maxVal2));
+                        new TH2F((varToPlot[0]+"Vs"+varToPlot[1]+"_sb_sig").c_str(),("sb_sig;"+varToPlot[0]+";"+varToPlot[1]).c_str(),
+                            75,minVal1,maxVal1,75,minVal2,maxVal2));
                 hists2D_bkg_sb.push_back(
-                        new TH2F((varToPlot[0]+"Vs"+varToPlot[1]+"_bkg_sb").c_str(),("bkg_sb;"+varToPlot[0]+";"+varToPlot[1]).c_str(),75,minVal1,maxVal1,75,minVal2,maxVal2));
+                        new TH2F((varToPlot[0]+"Vs"+varToPlot[1]+"_sb_bkg").c_str(),("sb_bkg;"+varToPlot[0]+";"+varToPlot[1]).c_str(),
+                            75,minVal1,maxVal1,75,minVal2,maxVal2));
                 mapVarsToPlotToIdx[varToPlot[0]+";"+varToPlot[1]]=idx2D;
                 cout << "Setting " << varToPlot[0]+";"+varToPlot[1] << " to match with " << idx2D << endl;
                 ++idx2D;
@@ -257,8 +289,8 @@ void makePlots(){
         cout << "STACKING HISTOGRAMS INTO CANVAS" << endl;
         for (auto varToPlot: varsToPlot){
             if (varToPlot.size()==1){
+                cout << "plotting " << varToPlot[0] << " with hist name: " << hists1D_tot[i]->GetName() << endl;
                 i=mapVarsToPlotToIdx[varToPlot[0]];
-                cout << i << ", " << hists1D_tot[i]->GetName() << endl;
 	        makeStackedHist(hists1D_tot[i],hists1D_sig[i],hists1D_bkg[i],hists1D_sig_sb[i],hists1D_bkg_sb[i],varToPlot[0], "diagnosticPlots"+runTag+"/"+fileTag);
             }
             else if (varToPlot.size()==2){

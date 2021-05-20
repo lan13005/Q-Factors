@@ -6,6 +6,8 @@
 #include <TSystem.h>
 #include <iostream>
 #include <queue>
+#include <TTree.h>
+#include <TLeaf.h>
 
 using namespace std;
 
@@ -71,7 +73,7 @@ class distSort_kNN
         std::pair<float,int> _pair;
 };
 
-// This class will be used to standardize the phase space variables. 
+// This class will be used to standardize the phase space variable. 
 // Can either do stddev or range standardization
 class standardizeArray{
 	public:
@@ -141,7 +143,7 @@ float calc_distance( int dim, float* phaseSpace_1, float* phaseSpace_2, bool ver
 }
 
 
-// Class to parse the string of phase space variables to consider
+// Class to parse the string of phase space variable to consider
 class parseVarString{
     private:
         int nVars=0;
@@ -227,5 +229,18 @@ void outputMemUsage(ProcInfo_t pinfo, string contextString){
     cout << contextString << pinfo.fMemResident << "KB" << endl; 
 }
 
+string setBranchAddress(TTree* tree, string variable, float* value_f, double* value){
+    string typeName=tree->GetLeaf(variable.c_str())->GetTypeName();
+    if (typeName=="Float_t"){
+        cout << "Setting Branch with data type float " << variable << endl; 
+        tree->SetBranchAddress(variable.c_str(),value_f);
+    }
+    else if (typeName=="Double_t"){
+        cout << "Setting Branch with data type double " << variable << endl; 
+        tree->SetBranchAddress(variable.c_str(),value);
+    }
+    else { cout << "Branch " << variable << " has unlisted datatype! exiting" << endl; exit(0); }
+   return typeName; 
+}
 
 #endif

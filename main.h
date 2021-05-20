@@ -27,6 +27,7 @@
 #include <TLegend.h>
 #include <TSystem.h>
 #include <TPolyLine3D.h>
+#include <TLeaf.h>
 #include "Math/MinimizerOptions.h"
 
 bool verbose_outputDistCalc=false;

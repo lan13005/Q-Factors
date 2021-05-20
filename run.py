@@ -37,16 +37,18 @@ start_time = time.time()
 
 # -------- STANDARD ---------
 rootFileLocs=[
-        ("degALL_a2nonres_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_treeFlat_DSelector.root",
-            "degALL_a2nonres_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "all")
+#        ("degALL_a2nonres_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_treeFlat_DSelector.root",
+#            "degALL_a2nonres_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "all")
+        ("/d/grid13/ln16/q-values-2/rootFiles/phase1_mEllipse_8288_chi13_tpLT05_pipicut_omegacut/degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol000_090.root",
+            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "000_090")
         ]
 _SET_accWeight="AccWeight" 
 _SET_sbWeight="weightBS" 
 _SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm" 
 _SET_discrimVars="Mpi0;Meta" 
-_SET_nProcess=48
-_SET_kDim=800 
-_SET_nentries=-1
+_SET_nProcess=1
+_SET_kDim=200 
+_SET_nentries=300
 _SET_numberEventsToSavePerProcess=2 
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 
@@ -54,7 +56,7 @@ _SET_redistributeBkgSigFits=0
 _SET_nRndRepSubset=0 
 _SET_doKRandomNeighbors=0 
 _SET_nBS=0 
-_SET_runTag="2D" 
+_SET_runTag="_data_000_090" 
 _SET_seedShift=1341 
 _SET_saveBShistsAlso=0 
 _SET_alwaysSaveTheseEvents="" 
@@ -178,8 +180,8 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
     os.system("rm -rf logs"+_SET_runTag+"/"+_SET_fileTag)
     os.system("rm -rf histograms"+_SET_runTag+"/"+_SET_fileTag)
     os.system("mkdir -p logs"+_SET_runTag+"/"+_SET_fileTag)
-    os.system("cp main.C logs/main.C")
-    os.system("cp run.py logs/run.py")
+    os.system("cp main.C logs"+_SET_runTag+"/main.C")
+    os.system("cp run.py logs"+_SET_runTag+"/run.py")
     os.system("mkdir -p histograms"+_SET_runTag+"/"+_SET_fileTag)
 
 

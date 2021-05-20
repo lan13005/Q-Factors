@@ -8,6 +8,17 @@ void makePlotsSummed(){
 	
 	TFile* dataFile2 = new TFile(("diagnosticPlots"+runTag+"/postQVal_hists.root").c_str());
 
+        // Match histogram type to a given index
+	TH1F* hists1D[5];
+	TH2F* hists2D[5];
+        map<string,int> types={
+            {"_tot",0},
+            {"_sig",1},
+            {"_bkg",2},
+            {"_sb_sig",3},
+            {"_sb_bkg",4}
+        };
+
         // FIRST LOOP THROUGH THE KEYS TO DETERMINE THE HISTOGRAMS TO PLOT
         set<string> names;
         std::string delimiter = "_";
@@ -16,43 +27,63 @@ void makePlotsSummed(){
             string className=key->ReadObj()->ClassName();
             string objName=key->GetName();
             cout << "Reading key: " << objName << " of class: " << className << endl;
-            string name = objName.substr(0, objName.find(delimiter));
-            string type = objName.substr(objName.find(delimiter),objName.length());
+            int tagLength=7;
+            string tag = objName.substr(objName.size()-tagLength,objName.size());
+            if (types.find(tag) == types.end()){
+                tagLength=4;
+                tag = objName.substr(objName.size()-tagLength,objName.size());
+            }
+            string name = objName.substr(0, objName.size()-tagLength);
             names.insert(name);
         }
 
-	TH1F* hists1D[5];
-	TH2F* hists2D[5];
         bool is1D=true;
-        vector<string> types={"_tot","_sig","_bkg","_sig_sb","_bkg_sb"};
         for (string nameToPlot : names){
+            cout << nameToPlot << endl;
             TIter nextkey(gDirectory->GetListOfKeys());
             while (TKey* key = (TKey*)nextkey() ){
                 string className=key->ReadObj()->ClassName();
                 string objName=key->GetName();
-                string name = objName.substr(0, objName.find(delimiter));
-                if (name==nameToPlot){
+
+                int tagLength=7;
+                string tag = objName.substr(objName.size()-tagLength,objName.size());
+                if (types.find(tag) == types.end()){
+                    tagLength=4;
+                    tag = objName.substr(objName.size()-tagLength,objName.size());
+                }
+                string name = objName.substr(0, objName.size()-tagLength);
+
+                bool condition=name.compare(nameToPlot)==0;
+                if (condition){
                     string type = objName.substr(objName.find(delimiter),objName.length());
                     if (className=="TH1F"){
+                        cout << "  found match ("+objName+")! Histogram is TH1F" << endl;
                         is1D=true;
-                        for (int i=0; i<(int)types.size();++i){ 
-                            if (type==types[i])
-                                hists1D[i]=(TH1F*)key->ReadObj();
+                        for (auto aType: types){
+                            if (type==aType.first)
+                                hists1D[types[type]]=(TH1F*)key->ReadObj();
                         }
                     }
-                    if (className=="TH2F"){
+                    else if (className=="TH2F"){
                         is1D=false;
-                        for (int i=0; i<(int)types.size();++i){ 
-                            if (type==types[i])
-                                hists2D[i]=(TH2F*)key->ReadObj();
+                        cout << "  found match ("+objName+")! Histogram is TH2F" << endl;
+                        int j=0;
+                        for (auto aType: types){
+                            if (type==aType.first)
+                                hists2D[types[type]]=(TH2F*)key->ReadObj();
+                            ++j;
                         }
                     }
+                    else { cout << "Unexpected key! Found object that is not TH1F nor TH2F. exiting..." << endl; exit(0); }
                 }
             }
-            if(is1D)
+            if(is1D){
 	        makeStackedHist(hists1D[0],hists1D[1],hists1D[2],hists1D[3],hists1D[4],nameToPlot,"diagnosticPlots"+runTag);
-            else
+            }
+            else{
+                cout << "Filling " << hists2D[0]->GetName() << endl;
                 make2DHistsOnPads(hists2D[0],hists2D[1],hists2D[2],hists2D[3],hists2D[4],nameToPlot, "diagnosticPlots"+runTag);
+            }
         }
 }
 

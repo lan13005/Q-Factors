@@ -6,8 +6,7 @@ int extra=0;
 void QFactorAnalysis::initialize(string rootFileLoc, string rootTreeName){
 	cout << "Loading root file and tree" << endl;
         if (saveMemUsage)
-            outputMemUsage(pinfo,"Before basic setup: ");
-        //cout << "Before basic setup: " << pinfo.fMemResident << "KB" << endl;
+            outputMemUsage(pinfo,"Before QFactorAnalysis initialization: ");
         dataFile=new TFile((rootFileLoc).c_str());
 	dataFile->GetObject((rootTreeName).c_str(),dataTree);
 	// Get the total number of entries and potentially overwrite it if we want to have a shorter run
@@ -39,40 +38,48 @@ void QFactorAnalysis::initialize(string rootFileLoc, string rootTreeName){
         else { sigFracs={0.5}; }
 
         if (saveMemUsage)
-            outputMemUsage(pinfo,"After basic setup: ");
+            outputMemUsage(pinfo,"After QFactorAnalysis initialization: ");
 }
 
 
 void QFactorAnalysis::loadData(){
-	cout << "Loading the data into arrays" << endl;
         if (saveMemUsage)
-            outputMemUsage(pinfo,"Before basic setup: ");
+            outputMemUsage(pinfo,"Before loading data: ");
+        cout << "\n" << endl;
 	// -----------------------------------------------------
 	// -----------------------------------------------------
 	//                         LOAD IN THE DATA
 	// -----------------------------------------------------
 	// -----------------------------------------------------
 	// Create variables to hold the data as we read in the data from the tree
-        float phaseSpaceVar[phaseSpaceDim];
-        float discrimVar[discrimVarDim];
-	float accWeight;
-
-        // vars we will use to fill but not use directly
-	//ULong64_t eventNumber;
-	//dataTree->SetBranchAddress("event",&eventNumber);
+        // We MUST match the data type of the input branch. There are two cases I will consider: {float, double} 
+        //   We will keep track of what data type a specific branch used and fill accordingly. Only these variables we
+        //   use to SetBranchAddress needs to match. We can fill a double or a float into a vector<float>. Using floats
+        //   saves memory so its worth the effort
+        double phaseSpaceVar[phaseSpaceDim];
+        double discrimVar[discrimVarDim];
+        float phaseSpaceVar_f[phaseSpaceDim];
+        float discrimVar_f[discrimVarDim];
+        string phaseSpaceDataTypes[phaseSpaceDim];
+        string discrimVarDataTypes[discrimVarDim];  
+	double accWeight;
+	float accWeight_f;
+        string weightType;
 
 	// Set branch addresses so we can read in the data
+        string typeName;
+
 	parsePhaseSpace.parseString(s_phaseVar);
         if ( parsePhaseSpace.varStringSet.size() != phaseSpaceDim ) { cout << "Uh-oh something went wrong. varString size not right size" << endl; }
 	for (int iVar=0; iVar<phaseSpaceDim; ++iVar){
-            cout << "Setting " << parsePhaseSpace.varStringSet[iVar] << " to phaseSpaceVar index " << iVar << endl; 
-            dataTree->SetBranchAddress(parsePhaseSpace.varStringSet[iVar].c_str(),&phaseSpaceVar[iVar]);
+            typeName=setBranchAddress(dataTree, parsePhaseSpace.varStringSet[iVar], &phaseSpaceVar_f[iVar], &phaseSpaceVar[iVar]);
+            phaseSpaceDataTypes[iVar]=typeName;
         }
 	parseDiscrimVars.parseString(s_discrimVar);
         if ( parseDiscrimVars.varStringSet.size() != discrimVarDim ) { cout << "Uh-oh something went wrong. discrimVar string size not right size" << endl; }
 	for (int iVar=0; iVar<discrimVarDim; ++iVar){
-            cout << "Setting " << parseDiscrimVars.varStringSet[iVar] << " to discrimVar index " << iVar << endl; 
-	    dataTree->SetBranchAddress(parseDiscrimVars.varStringSet[iVar].c_str(), &discrimVar[iVar]);
+            typeName=setBranchAddress(dataTree, parseDiscrimVars.varStringSet[iVar], &discrimVar_f[iVar], &discrimVar[iVar]);
+            discrimVarDataTypes[iVar]=typeName;
         }
 
         //////////////////////////////////////////////////////////
@@ -80,11 +87,12 @@ void QFactorAnalysis::loadData(){
         //////////////////////////////////////////////////////////
         // Setting up tracking of accidental weights
         if (!s_accWeight.empty()){ // if string is not empty we will set the branch address
-	    dataTree->SetBranchAddress(s_accWeight.c_str(),&accWeight);
+            weightType=setBranchAddress(dataTree, s_accWeight, &accWeight_f, &accWeight);
             cout << "Using weights in branch: "+s_accWeight << endl;
         }
         else{
-            accWeight=1;
+            accWeight_f=1;
+            weightType="Float_t"; // we wont be using weights, just keep as a value of 1 with datatype float
             cout << "No additional weights used" << endl;
         }
 
@@ -92,19 +100,31 @@ void QFactorAnalysis::loadData(){
         // LOAD THE DATA
         /////////////////////////////////////////////////////////////
 	// We will use a ientry to keep track of which entries we will get from the tree. We will simply use ientry when filling the arrays.  
+        cout << "\n" << endl;
         if (saveMemUsage)
-            outputMemUsage(pinfo,"Loading data: ");
+            outputMemUsage(pinfo,"Begin loading data: ");
 	for (Long64_t ientry=0; ientry<nentries; ientry++)
 	{
 		dataTree->GetEntry(ientry);
 	        for (int iVar=0; iVar<phaseSpaceDim; ++iVar){
-                    phaseSpaceVars[iVar].push_back(phaseSpaceVar[iVar]);
+                    if (phaseSpaceDataTypes[iVar]=="Float_t")
+                        phaseSpaceVars[iVar].push_back(phaseSpaceVar_f[iVar]);
+                    if (phaseSpaceDataTypes[iVar]=="Double_t")
+                        phaseSpaceVars[iVar].push_back(phaseSpaceVar[iVar]);
                 }
 	        for (int iVar=0; iVar<discrimVarDim; ++iVar){
-                    discrimVars[iVar].push_back(discrimVar[iVar]);
+                    if (discrimVarDataTypes[iVar]=="Float_t")
+                        discrimVars[iVar].push_back(discrimVar_f[iVar]);
+                    if (discrimVarDataTypes[iVar]=="Double_t")
+                        discrimVars[iVar].push_back(discrimVar[iVar]);
                 }
-	        accWeights.push_back(accWeight);
+                if (weightType=="Float_t")
+	            accWeights.push_back(accWeight_f);
+                if (weightType=="Double_t")
+	            accWeights.push_back(accWeight);
 	}
+        if (saveMemUsage)
+            outputMemUsage(pinfo,"After loading data: ");
 
 	if ( verbose_outputDistCalc ) {
 	    cout << "Before standarization the first nentries of phaseSpaceVar[0]" << endl;
@@ -112,8 +132,9 @@ void QFactorAnalysis::loadData(){
 	        cout << phaseSpaceVars[0][ientry] << endl;
 	    }
 	}
+
         if (saveMemUsage)
-            outputMemUsage(pinfo,"After loading data: ");
+            outputMemUsage(pinfo,"After standardization: ");
 
         dataFile->Close(); // dataTree is owned by dataFile. So it will automatically free memory
         gSystem->GetProcInfo(&pinfo);
