@@ -52,10 +52,11 @@ void makePlotsSummed(){
                     tag = objName.substr(objName.size()-tagLength,objName.size());
                 }
                 string name = objName.substr(0, objName.size()-tagLength);
+                string type = objName.substr(objName.size()-tagLength,objName.length());
 
                 bool condition=name.compare(nameToPlot)==0;
                 if (condition){
-                    string type = objName.substr(objName.find(delimiter),objName.length());
+                    cout << "type: " << type << endl;
                     if (className=="TH1F"){
                         cout << "  found match ("+objName+")! Histogram is TH1F" << endl;
                         is1D=true;
@@ -67,21 +68,20 @@ void makePlotsSummed(){
                     else if (className=="TH2F"){
                         is1D=false;
                         cout << "  found match ("+objName+")! Histogram is TH2F" << endl;
-                        int j=0;
                         for (auto aType: types){
                             if (type==aType.first)
                                 hists2D[types[type]]=(TH2F*)key->ReadObj();
-                            ++j;
                         }
                     }
                     else { cout << "Unexpected key! Found object that is not TH1F nor TH2F. exiting..." << endl; exit(0); }
                 }
             }
             if(is1D){
+                cout << "Drawing hist: " << hists1D[0]->GetName() << endl;
 	        makeStackedHist(hists1D[0],hists1D[1],hists1D[2],hists1D[3],hists1D[4],nameToPlot,"diagnosticPlots"+runTag);
             }
             else{
-                cout << "Filling " << hists2D[0]->GetName() << endl;
+                cout << "Drawing hist: " << hists2D[0]->GetName() << endl;
                 make2DHistsOnPads(hists2D[0],hists2D[1],hists2D[2],hists2D[3],hists2D[4],nameToPlot, "diagnosticPlots"+runTag);
             }
         }

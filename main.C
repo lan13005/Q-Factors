@@ -464,11 +464,11 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                         ////////////////////////////////////////////////////////////////////////////////////////////
                         gSystem->GetProcInfo(&pinfo);
                         if (saveMemUsage)
-                            outputMemUsage(pinfo,"Before fitTo: ");
+                            outputMemUsage(pinfo,"\tBefore fitTo: ");
                         RooFitResult* roo_result = fm.fit();
                         gSystem->GetProcInfo(&pinfo);
                         if (saveMemUsage)
-                            outputMemUsage(pinfo,"After fitTo: ");
+                            outputMemUsage(pinfo,"\tAfter fitTo: ");
                         
 		        duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
 		        if(saveEventLevelProcessSpeed){logFile <<	"\tFitted hist with some initialization: " << duration2 << "ms" << endl;}
@@ -627,7 +627,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                     endMemResident=pinfo.fMemResident;
                 }
                 if (saveMemUsage)
-                    outputMemUsage(pinfo,"End of current iteration - mem usuage: ");
+                    outputMemUsage(pinfo,"\tEnd of current iteration - mem usuage: ");
 	}
         resultsFile->cd();
         resultsTree->Write();

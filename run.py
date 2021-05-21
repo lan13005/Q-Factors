@@ -39,16 +39,16 @@ start_time = time.time()
 rootFileLocs=[
 #        ("degALL_a2nonres_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_treeFlat_DSelector.root",
 #            "degALL_a2nonres_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "all")
-        ("/d/grid13/ln16/q-values-2/rootFiles/phase1_mEllipse_8288_chi13_tpLT05_pipicut_omegacut/degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol000_090.root",
+        ("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol000_090.root",
             "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "000_090")
         ]
 _SET_accWeight="AccWeight" 
 _SET_sbWeight="weightBS" 
 _SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm" 
 _SET_discrimVars="Mpi0;Meta" 
-_SET_nProcess=1
-_SET_kDim=200 
-_SET_nentries=300
+_SET_nProcess=36
+_SET_kDim=800 
+_SET_nentries=-1
 _SET_numberEventsToSavePerProcess=2 
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 

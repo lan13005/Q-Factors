@@ -155,7 +155,7 @@ class fitManager
             float bkgPdfVal = (1-sigFrac)*rooBkg->getVal(RooArgSet(*roo_Mpi0,*roo_Meta));
             float totPdfVal = rooSigPlusBkg->getVal(RooArgSet(*roo_Mpi0,*roo_Meta));
             float qvalue = sigPdfVal/(sigPdfVal+bkgPdfVal);
-            cout << "postFit(Q=" << qvalue << ") - nsig: " << nsig->getVal() << " || nbkg: " << nbkg->getVal() << endl;
+            cout << "\tpostFit(Q=" << qvalue << ") - nsig: " << nsig->getVal() << " || nbkg: " << nbkg->getVal() << endl;
             return qvalue;
         }
 
