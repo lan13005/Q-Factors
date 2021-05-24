@@ -44,8 +44,7 @@ void QFactorAnalysis::initialize(string rootFileLoc, string rootTreeName){
 
 void QFactorAnalysis::loadData(){
         if (saveMemUsage)
-            outputMemUsage(pinfo,"Before loading data: ");
-        cout << "\n" << endl;
+            outputMemUsage(pinfo,"\n\nBefore loading data: ");
 	// -----------------------------------------------------
 	// -----------------------------------------------------
 	//                         LOAD IN THE DATA
@@ -69,15 +68,18 @@ void QFactorAnalysis::loadData(){
 	// Set branch addresses so we can read in the data
         string typeName;
 
+        dataTree->SetBranchStatus("*",0);
 	parsePhaseSpace.parseString(s_phaseVar);
         if ( parsePhaseSpace.varStringSet.size() != phaseSpaceDim ) { cout << "Uh-oh something went wrong. varString size not right size" << endl; }
 	for (int iVar=0; iVar<phaseSpaceDim; ++iVar){
+            dataTree->SetBranchStatus(parsePhaseSpace.varStringSet[iVar].c_str(),1);
             typeName=setBranchAddress(dataTree, parsePhaseSpace.varStringSet[iVar], &phaseSpaceVar_f[iVar], &phaseSpaceVar[iVar]);
             phaseSpaceDataTypes[iVar]=typeName;
         }
 	parseDiscrimVars.parseString(s_discrimVar);
         if ( parseDiscrimVars.varStringSet.size() != discrimVarDim ) { cout << "Uh-oh something went wrong. discrimVar string size not right size" << endl; }
 	for (int iVar=0; iVar<discrimVarDim; ++iVar){
+            dataTree->SetBranchStatus(parseDiscrimVars.varStringSet[iVar].c_str(),1);
             typeName=setBranchAddress(dataTree, parseDiscrimVars.varStringSet[iVar], &discrimVar_f[iVar], &discrimVar[iVar]);
             discrimVarDataTypes[iVar]=typeName;
         }
@@ -87,6 +89,7 @@ void QFactorAnalysis::loadData(){
         //////////////////////////////////////////////////////////
         // Setting up tracking of accidental weights
         if (!s_accWeight.empty()){ // if string is not empty we will set the branch address
+            dataTree->SetBranchStatus(s_accWeight.c_str(),1);
             weightType=setBranchAddress(dataTree, s_accWeight, &accWeight_f, &accWeight);
             cout << "Using weights in branch: "+s_accWeight << endl;
         }
@@ -100,7 +103,6 @@ void QFactorAnalysis::loadData(){
         // LOAD THE DATA
         /////////////////////////////////////////////////////////////
 	// We will use a ientry to keep track of which entries we will get from the tree. We will simply use ientry when filling the arrays.  
-        cout << "\n" << endl;
         if (saveMemUsage)
             outputMemUsage(pinfo,"Begin loading data: ");
 	for (Long64_t ientry=0; ientry<nentries; ientry++)
@@ -111,17 +113,23 @@ void QFactorAnalysis::loadData(){
                         phaseSpaceVars[iVar].push_back(phaseSpaceVar_f[iVar]);
                     if (phaseSpaceDataTypes[iVar]=="Double_t")
                         phaseSpaceVars[iVar].push_back(phaseSpaceVar[iVar]);
+                    if (saveMemUsage)
+                        outputMemUsage(pinfo,"loaded phaseSpace iVar "+to_string(iVar)+": ");
                 }
 	        for (int iVar=0; iVar<discrimVarDim; ++iVar){
                     if (discrimVarDataTypes[iVar]=="Float_t")
                         discrimVars[iVar].push_back(discrimVar_f[iVar]);
                     if (discrimVarDataTypes[iVar]=="Double_t")
                         discrimVars[iVar].push_back(discrimVar[iVar]);
+                    if (saveMemUsage)
+                        outputMemUsage(pinfo,"loaded discrimVar iVar "+to_string(iVar)+": ");
                 }
                 if (weightType=="Float_t")
 	            accWeights.push_back(accWeight_f);
                 if (weightType=="Double_t")
 	            accWeights.push_back(accWeight);
+                if (saveMemUsage)
+                    outputMemUsage(pinfo,"loaded accWeight: ");
 	}
         if (saveMemUsage)
             outputMemUsage(pinfo,"After loading data: ");
@@ -208,10 +216,8 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 	cout << "kDim: " << kDim << endl;
 	cout << "numberEventsToSavePerProcess: " << numberEventsToSavePerProcess << endl;
 	cout << "nProcess: " << nProcess << endl;
-	cout << "seedShift: " << seedShift << endl;
 	cout << "nentries: " << nentries << endl;
 	cout << "override_nentries: " << override_nentries << endl;
-	cout << "saveEventLevelProcessSpeed: " << saveEventLevelProcessSpeed << endl;
 
 	// [=] refers to a capture list which is used by this lambda expression. The lambda gets a copy of all the local variables that it uses when it is created. If we
 	// just use [] we will get an error since the lambda will have no idea what these variables are	
@@ -401,19 +407,21 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 
                     // What if we wanted to look at k random neighbors?
                     if (doKRandomNeighbors){
+                        cout << "\tDoing k random neighbors" << endl;
 		        for (int jentry=0; jentry<kDim;++jentry) {  
 		              randomEntry = rand() % nentries;
 		              distKNN.insertPair(make_pair(1, randomEntry) ); //just using 1 as a distance. Doesnt matter anyways
 		        }
                     }
                     else {
+                        cout << "\tFinding nearest neighbors" << endl;
 		        for (int jentry : phasePoint2PotentailNeighbor_BS) {  
                             if (jentry == ientry){ continue; } 
-		            if ( verbose_outputDistCalc ) { cout << "event i,j = " << ientry << "," << jentry << endl;} 
 		            for ( int iVar=0; iVar<phaseSpaceDim; ++iVar ){
 		               	phasePoint2[iVar] = phaseSpaceVars[iVar][jentry];
 		            }
 		            distance = calc_distance(phaseSpaceDim,phasePoint1,phasePoint2,verbose_outputDistCalc);
+		            if ( verbose_outputDistCalc ) { cout << "event (i,j)=(" << ientry << "," << jentry << ") has distance=" << distance << endl;} 
 		            distKNN.insertPair(make_pair(distance,jentry));
 		        }
                     }
@@ -436,10 +444,11 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                         }
                         if (verbose_outputDistCalc){
                             if (discrimVarDim==1)
-		                cout << "(" << newPair.first << ", " << newPair.second << "): " << discrimVars[0][newPair.second] << endl; 
+		                cout << "(distance, idx)=(" << newPair.first << ", " << newPair.second << ") with x = " << discrimVars[0][newPair.second] << 
+                                    " and weight= " << weight << endl; 
                             if (discrimVarDim==2)
-		                cout << "(" << newPair.first << ", " << newPair.second << "): " << discrimVars[0][newPair.second] 
-                                     << ", " << discrimVars[1][newPair.second] << endl; 
+		                cout << "(" << newPair.first << ", " << newPair.second << ") with x,y = " << discrimVars[0][newPair.second] 
+                                     << ", " << discrimVars[1][newPair.second] << " and weight= " << weight << endl; 
                         }
 		    }
 		    

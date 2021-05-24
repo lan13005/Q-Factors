@@ -70,5 +70,5 @@ void subdetector_convertROOTtoPNG(string inDir){
 }
 
 void convertROOTtoPNG(){
-	subdetector_convertROOTtoPNG("histograms/all");
+	subdetector_convertROOTtoPNG("histograms_test/000_090");
 }

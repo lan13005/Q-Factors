@@ -30,7 +30,6 @@
 #include <TLeaf.h>
 #include "Math/MinimizerOptions.h"
 
-bool verbose_outputDistCalc=false;
 TRandom rgen;
 using namespace std;
 
