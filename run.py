@@ -39,17 +39,19 @@ start_time = time.time()
 rootFileLocs=[
 #        ("degALL_a2nonres_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_treeFlat_DSelector.root",
 #            "degALL_a2nonres_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "all")
-        ("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol000_090.root",
-            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "000_090")
+#        ("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol000_090.root",
+#            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "000_090")
+        ("degALL_a0a2_trees_UTweights.root",
+            "degALL_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "all")
         #(rootFileBase+"allMC_trees.root", degALL_acc_mEllipse_tree_flat, "all")
         ]
 _SET_accWeight="AccWeight" 
 _SET_sbWeight="weightBS" 
-_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;phi_X_lab" 
+_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi"#phi_X_lab" 
 _SET_discrimVars="Mpi0;Meta" 
-_SET_nProcess=1
-_SET_kDim=200
-_SET_nentries=300
+_SET_nProcess=36
+_SET_kDim=300
+_SET_nentries=-1
 _SET_numberEventsToSavePerProcess=2 
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 
@@ -57,10 +59,10 @@ _SET_redistributeBkgSigFits=0
 _SET_nRndRepSubset=0 
 _SET_doKRandomNeighbors=0
 _SET_nBS=0 
-_SET_runTag="_test" 
+_SET_runTag="" 
 _SET_seedShift=1341 
 _SET_saveBShistsAlso=0 
-_SET_alwaysSaveTheseEvents="" 
+_SET_alwaysSaveTheseEvents="90972;51623;57740" 
 _SET_saveBranchOfNeighbors=0 
 _SET_saveMemUsage=1 
 _SET_saveEventLevelProcessSpeed=1 

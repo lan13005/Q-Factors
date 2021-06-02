@@ -484,7 +484,13 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                         
                         // setting parameters for bkg/sig and extracting q-value
                         qvalue = fm.calculate_q(discrimVars, ientry);
-                        //qvalue = fm.calculate_q(discrimVars[0][ientry],discrimVars[1][ientry]);
+                        
+                        if ( isnan(qvalue) ){
+                            params=fm.getParameters();
+                            params->Print("s");
+                            cout << "QVALUE IS NAN!" << endl;
+                        }
+
 		        if(saveEventLevelProcessSpeed){logFile <<	"\tExtracted q-value (" << qvalue << "): " << duration2 << "ms" << endl;}
                         
 		    	NLL = roo_result->minNll();

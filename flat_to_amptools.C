@@ -4,7 +4,7 @@
 // For Zlm amplitudes we need to split the data into various polarizations which this code can do in you have the polarization angle saved in the flat tree
 // Amptools can also accept a background file so you can import the weights appropriately and include them: i.e. AccWeight*qvalue
 
-void flat_to_amptools_on_tag(string tag, string fileLoc, string treeName);
+void flat_to_amptools_on_tag(string tag, string fileLoc, string treeName){
     // FIRST DEFINE IF YOU WANT TO USE THROWN VALUES OR KIN FIT OR MEASURED VALUES
     // TYPICALL IT SHOULD BE THROWN VALUES FOR ACC AND KIN FOR DATA
     string sourceTag="kin"; // {true, kin, meas}
@@ -38,12 +38,12 @@ void flat_to_amptools_on_tag(string tag, string fileLoc, string treeName);
     string polAngleBranch="BeamAngle";
     string rfTimeBranch="rfTime";
     string tBranch="mandelstam_tp";
-    double accidental;
-    double qvalue;
-    double weightASBS;
+    float accidental;
+    float qvalue;
+    float weightASBS;
     int polAngle;
-    double rfTime;
-    double mandelstam_tp;
+    float rfTime;
+    float mandelstam_tp;
     float beam_e;
     float beam_px;
     float beam_py;

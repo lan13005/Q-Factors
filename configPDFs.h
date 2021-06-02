@@ -101,9 +101,9 @@ class fitManager
             rooData = new RooDataSet{("rooData"+iProcess).c_str(),"rooData",RooArgSet(*roo_Mpi0,*roo_Meta,*roo_Weight),RooFit::WeightVar(*roo_Weight)};
             /////////////// FOR SIGNAL PDF
             peak_pi0 = new RooRealVar{("peak_pi0_"+iProcess).c_str(),"peak_pi0",initMassX};
-            width_pi0 = new RooRealVar{("width_pi0_"+iProcess).c_str(),"width_pi0",initSigmaX,initSigmaX*0.5,initSigmaX*1.5};
+            width_pi0 = new RooRealVar{("width_pi0_"+iProcess).c_str(),"width_pi0",initSigmaX,initSigmaX*0.5,initSigmaX*4};
             peak_eta = new RooRealVar{("peak_eta_"+iProcess).c_str(),"peak_eta",initMassY};
-            width_eta = new RooRealVar{("width_eta_"+iProcess).c_str(),"width_eta",initSigmaY,initSigmaY*0.5,initSigmaY*1.5};
+            width_eta = new RooRealVar{("width_eta_"+iProcess).c_str(),"width_eta",initSigmaY,initSigmaY*0.5,initSigmaY*4};
             rooGausPi0 = new RooGaussian{("rooGausPi0_"+iProcess).c_str(), "rooGausPi0", *roo_Mpi0, *peak_pi0, *width_pi0};
             rooGausEta = new RooGaussian{("rooGausEta_"+iProcess).c_str(), "rooGausEta", *roo_Meta, *peak_eta, *width_eta};
             /////////////// FOR BKG PDF
@@ -155,7 +155,10 @@ class fitManager
             float bkgPdfVal = (1-sigFrac)*rooBkg->getVal(RooArgSet(*roo_Mpi0,*roo_Meta));
             float totPdfVal = rooSigPlusBkg->getVal(RooArgSet(*roo_Mpi0,*roo_Meta));
             float qvalue = sigPdfVal/(sigPdfVal+bkgPdfVal);
-            cout << "\tpostFit(Q=" << qvalue << ") - nsig: " << nsig->getVal() << " || nbkg: " << nbkg->getVal() << endl;
+            //if ((sigPdfVal==0)*(bkgPdfVal==0)*(sigFrac==1)){
+            //    qvalue=0;    
+            //}
+            cout << "\tpostFit(Q=" << qvalue << ") - sigFrac: " << sigFrac << " || sigPdfVal: " << sigPdfVal << " || bkgPdfVal: " << bkgPdfVal << endl;
             return qvalue;
         }
 

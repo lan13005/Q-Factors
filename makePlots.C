@@ -38,7 +38,6 @@ void makePlots(){
             cout << "nentries: " << nentries << endl;
 	}
 	float qvalue;
-        float conjugate_qvalue;
 	float bestNLL;
 	float worstNLL;
         float worst_qvalue;
@@ -244,20 +243,25 @@ void makePlots(){
 		qvalue = qvalues[ientry];
                 accWeight=accWeights[ientry];
                 sbWeight=sbWeights[ientry];
-		conjugate_qvalue = 1-qvalue;
                 baseWeight=accWeight;
+
+                if (isnan(qvalue)){
+                    cout << "qvalue is nan... exiting..." << endl;
+                    exit(0);
+                }
+
                 ////////////////////////////////////
                 // Multiply q-factor and accidetal weights if requested
                 ////////////////////////////////////
 		sigWeight = qvalue*baseWeight;
 		totWeight = baseWeight;
-		bkgWeight = conjugate_qvalue*baseWeight;
+		bkgWeight = totWeight-sigWeight;
 
                 //////////////////////////////
                 // Multply sideband and accidental weights if requested 
                 //////////////////////////////
                 sigWeight_sb = baseWeight*sbWeight;
-                bkgWeight_sb = baseWeight*(1-sbWeight);
+                bkgWeight_sb = totWeight-sigWeight_sb;
             
                 ////////////////////////////////////
                 // Fill histograms
