@@ -44,8 +44,8 @@ void draw2DPlots(
     
     string namex = x->GetName();
     string namey = y->GetName();
-    cout << "x variable name: " << namex << endl;
-    cout << "y variable name: " << namey << endl;
+    //cout << "x variable name: " << namex << endl;
+    //cout << "y variable name: " << namey << endl;
 
     RooPlot *xframe = x->frame(Title(namex.c_str()));
     RooPlot *xframe2 = y->frame(Title(namey.c_str()));

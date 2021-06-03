@@ -34,6 +34,7 @@ start_time = time.time()
 # saveEventLevelProcessSpeed:  include info on process speed into processLogX.log files
 # emailWhenFinished: we can send an email when the code is finished, no email sent if empty string
 # runBatch: Not ready - (default=0) 0=run on a single computer, 1=submit to condor for batch processing
+# extraLibs: Include extra libraries to compile main with. Intended for loading custom PDFs
 
 # -------- STANDARD ---------
 rootFileLocs=[
@@ -49,10 +50,10 @@ _SET_accWeight="AccWeight"
 _SET_sbWeight="weightBS" 
 _SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi"#phi_X_lab" 
 _SET_discrimVars="Mpi0;Meta" 
-_SET_nProcess=36
+_SET_nProcess=48
 _SET_kDim=300
 _SET_nentries=-1
-_SET_numberEventsToSavePerProcess=2 
+_SET_numberEventsToSavePerProcess=2
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 
 _SET_redistributeBkgSigFits=0 
@@ -62,12 +63,13 @@ _SET_nBS=0
 _SET_runTag="" 
 _SET_seedShift=1341 
 _SET_saveBShistsAlso=0 
-_SET_alwaysSaveTheseEvents="90972;51623;57740" 
+_SET_alwaysSaveTheseEvents=""#90972;51623;57740" 
 _SET_saveBranchOfNeighbors=0 
 _SET_saveMemUsage=1 
 _SET_saveEventLevelProcessSpeed=1 
 _SET_emailWhenFinished="" 
 _SET_runBatch=0 
+_SET_extraLibs=["./auxilliary/customPDFs/bivariateGaus/bivariateGaus_cxx.so"]
 
 #############################################################################
 ###################  DEALING WITH CMDLINE ARGS   #########################
@@ -218,6 +220,7 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
     rooFitFlags = ["-lRooStats","-lRooFitCore", "-lRooFit"]
     compileMain.extend(rootFlags)
     compileMain.extend(rooFitFlags)
+    compileMain.extend(_SET_extraLibs)
     print("\nStarting new compilation\n----------------------")
     print(" ".join(compileMain))
     out, err = subprocess.Popen(compileMain, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()

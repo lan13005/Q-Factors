@@ -113,23 +113,23 @@ void QFactorAnalysis::loadData(){
                         phaseSpaceVars[iVar].push_back(phaseSpaceVar_f[iVar]);
                     if (phaseSpaceDataTypes[iVar]=="Double_t")
                         phaseSpaceVars[iVar].push_back(phaseSpaceVar[iVar]);
-                    if (saveMemUsage)
-                        outputMemUsage(pinfo,"loaded phaseSpace iVar "+to_string(iVar)+": ");
+                    //if (saveMemUsage)
+                    //    outputMemUsage(pinfo,"loaded phaseSpace iVar "+to_string(iVar)+": ");
                 }
 	        for (int iVar=0; iVar<discrimVarDim; ++iVar){
                     if (discrimVarDataTypes[iVar]=="Float_t")
                         discrimVars[iVar].push_back(discrimVar_f[iVar]);
                     if (discrimVarDataTypes[iVar]=="Double_t")
                         discrimVars[iVar].push_back(discrimVar[iVar]);
-                    if (saveMemUsage)
-                        outputMemUsage(pinfo,"loaded discrimVar iVar "+to_string(iVar)+": ");
+                    //if (saveMemUsage)
+                    //    outputMemUsage(pinfo,"loaded discrimVar iVar "+to_string(iVar)+": ");
                 }
                 if (weightType=="Float_t")
 	            accWeights.push_back(accWeight_f);
                 if (weightType=="Double_t")
 	            accWeights.push_back(accWeight);
-                if (saveMemUsage)
-                    outputMemUsage(pinfo,"loaded accWeight: ");
+                //if (saveMemUsage)
+                //    outputMemUsage(pinfo,"loaded accWeight: ");
 	}
         if (saveMemUsage)
             outputMemUsage(pinfo,"After loading data: ");
@@ -351,10 +351,12 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 
                 // Outputting the progress of each thread
 		flatEntryNumber=ientry;
-		auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start2).count();
+                if (ientry==lowest_nentry)
+                    start = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count();
 		auto duration_beginEvent = std::chrono::high_resolution_clock::now();
-		if(saveEventLevelProcessSpeed) { logFile << "Starting event " << ientry << "/" << largest_nentry << " ---- Global Time: " << duration2 << "ms" << endl; }
-		cout << "Starting event " << ientry << "/" << largest_nentry << " ---- Global Time: " << duration2 << "ms" << endl; 
+		if(saveEventLevelProcessSpeed) { logFile << "Starting event " << ientry << "/" << largest_nentry << " ---- Global Time: " << duration << "ms" << endl; }
+		cout << "Starting event " << ientry << "/" << largest_nentry << " ---- Global Time: " << duration << "ms" << endl; 
 		
                 // Phase space Definitions
 		for ( int iVar=0; iVar<phaseSpaceDim; ++iVar ){
@@ -391,8 +393,8 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                 for (int iBS=0; iBS<nBS+1; ++iBS){ 
 		    bestNLL=DBL_MAX;
 		    worstNLL=-1*DBL_MAX; // DBL_MIN is basically 0. We want a very negative number
-		    duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
-		    if(saveEventLevelProcessSpeed){logFile << "\tBegin bootstrapping potential neighbors: " << duration2 << "ms" << endl; }
+		    duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
+		    if(saveEventLevelProcessSpeed){logFile << "\tBegin bootstrapping potential neighbors: +" << duration << "ms" << endl; }
                     phasePoint2PotentailNeighbor_BS.clear();
                     if (iBS!=nBS){ // resampling neighbors with replacement if we want to do bootstrapping
                         for(int iNeighbor=0; iNeighbor<nPotentialNeighbors; ++iNeighbor){
@@ -402,8 +404,8 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                     else{
                         phasePoint2PotentailNeighbor_BS = phasePoint2PotentialNeighbor;
                     }
-		    duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
-		    if(saveEventLevelProcessSpeed){logFile << "\tBegin finding neighbors: " << duration2 << "ms" << endl; }
+		    duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
+		    if(saveEventLevelProcessSpeed){logFile << "\tBegin finding neighbors: +" << duration << "ms" << endl; }
 
                     // What if we wanted to look at k random neighbors?
                     if (doKRandomNeighbors){
@@ -425,8 +427,8 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 		            distKNN.insertPair(make_pair(distance,jentry));
 		        }
                     }
-		    duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
-		    if(saveEventLevelProcessSpeed){logFile << "\tFound neighbors: " << duration2 << "ms" << endl; }
+		    duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
+		    if(saveEventLevelProcessSpeed){logFile << "\tFound neighbors: +" << duration << "ms" << endl; }
 		    if (distKNN.kNN.size() != kDim){ cout << "size of distKNN is not equal to kDim! size,kDim="<< distKNN.kNN.size() << "," << kDim 
 		        << "\n    -- if size is 1 less than kDim it is probably because kDim=nentries and event i cannot be a neighbor to itself" 
                         << "\n    -- if size != kDim it could also mean that the number of spectroscopically unique neighbors reduces the number of poential neighbors below kDim" << endl;}
@@ -452,8 +454,8 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                         }
 		    }
 		    
-		    duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
-		    if(saveEventLevelProcessSpeed){logFile <<	"\tFilled neighbors: " << duration2 << "ms" << endl;}
+		    duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
+		    if(saveEventLevelProcessSpeed){logFile <<	"\tFilled neighbors: +" << duration << "ms" << endl;}
 		    
 		    // /////////////////////////////////////////
 		    // Calcuclate q-value
@@ -461,13 +463,13 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                     RooArgSet* savedParams; 
                     RooArgSet* params; // intermedate parameter values for the pdfs
 		    for ( auto initSigFrac : sigFracs ){
-		        duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
-		        if(saveEventLevelProcessSpeed){logFile <<	"\tPrepping 2D fits:	 " << duration2 << "ms" << endl;}
+		        duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
+		        if(saveEventLevelProcessSpeed){logFile <<	"\tPrepping 2D fits:	 +" << duration << "ms" << endl;}
                         // intitialize the variables for the fit PDF
                         fm.reinitialize(initSigFrac);
 
-		        duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
-		        if(saveEventLevelProcessSpeed){logFile <<	"\tBeginning Fit:	 " << duration2 << "ms" << endl;}
+		        duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
+		        if(saveEventLevelProcessSpeed){logFile <<	"\tBeginning Fit:	 +" << duration << "ms" << endl;}
                         ////////////////////////////////////////////////////////////////////////////////////////////
                         //  BEGIN FITTING
                         ////////////////////////////////////////////////////////////////////////////////////////////
@@ -479,8 +481,8 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                         if (saveMemUsage)
                             outputMemUsage(pinfo,"\tAfter fitTo: ");
                         
-		        duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
-		        if(saveEventLevelProcessSpeed){logFile <<	"\tFitted hist with some initialization: " << duration2 << "ms" << endl;}
+		        duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
+		        if(saveEventLevelProcessSpeed){logFile <<	"\tCompleted Fit: +" << duration << "ms" << endl;}
                         
                         // setting parameters for bkg/sig and extracting q-value
                         qvalue = fm.calculate_q(discrimVars, ientry);
@@ -491,7 +493,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                             cout << "QVALUE IS NAN!" << endl;
                         }
 
-		        if(saveEventLevelProcessSpeed){logFile <<	"\tExtracted q-value (" << qvalue << "): " << duration2 << "ms" << endl;}
+		        if(saveEventLevelProcessSpeed){logFile <<	"\tExtracted q-value (" << qvalue << "): " << duration << "ms" << endl;}
                         
 		    	NLL = roo_result->minNll();
 		    	if (NLL < bestNLL){
@@ -550,8 +552,8 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
         	            allCanvases->Clear();
                             legend_qVal->Clear();
 
-		            cout <<	"\tSaving diagnostic histogram: " << duration2 << "ms" << endl;
-		            if(saveEventLevelProcessSpeed){logFile <<	"\tSaving histogram: " << duration2 << "ms" << endl;}
+		            cout <<	"\tSaving diagnostic histogram: " << duration << "ms" << endl;
+		            if(saveEventLevelProcessSpeed){logFile <<	"\tSaving histogram: " << duration << "ms" << endl;}
                             /// -- Might need to use this code section if RooFit ever becomes thread safe. 
                             //         If we draw rooSigPlusBkg with the various Components we get an error when using plotOn
                             ///        when using multi threads. Projecting each sub PDF makes it work fine. 
@@ -601,7 +603,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                             //qValLine->Draw("SAME");
                             //legend_qVal->AddEntry(dHist_qvaluesBS,"Bootstrapped Q Values");
                             //legend_qVal->Draw();
-		            //if(saveEventLevelProcessSpeed){logFile <<	"\tCompleted drawing on pad 6: " << duration2 << "ms" << endl;}
+		            //if(saveEventLevelProcessSpeed){logFile <<	"\tCompleted drawing on pad 6: " << duration << "ms" << endl;}
                             /////////////////////////////////////////////////////////////////////////
                             /////////////////////////////////////////////////////////////////////////
 
@@ -618,9 +620,9 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                             }
                             
         	            if(saveEventLevelProcessSpeed){
-        	                 duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() 
+        	                 duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() 
                                              - duration_beginEvent).count();
-        	                 logFile << "\tSaved this histogram since it was randomly selected: " << duration2 <<  "ms" << endl;
+        	                 logFile << "\tSaved this histogram since it was randomly selected: +" << duration <<  "ms" << endl;
         	            }
                             //delete model_hist;
                             //delete model_sig;
@@ -631,7 +633,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                     delete savedParams;
                 } // finishes nBS loop
 
-		if(saveEventLevelProcessSpeed){logFile << "\tCurrent Best NLL = " << to_string(bestNLL) << ": " << duration2 << "ms" << endl; }
+		if(saveEventLevelProcessSpeed){logFile << "\tCurrent Best NLL = " << to_string(bestNLL) << ": " << duration << "ms" << endl; }
 		resultsTree->Fill();
 
                 gSystem->GetProcInfo(&pinfo);
@@ -653,9 +655,9 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
         
 	// Finish the log files by including an elapsed time and finally closing the file
 	if (saveEventLevelProcessSpeed){
-		auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start2).count();
-		logFile << "Total time: " << duration2 << " ms" << endl;
-		logFile << "Time Per Event: " << duration2/(largest_nentry-lowest_nentry) << " ms" << endl;
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count();
+		logFile << "Total time: " << duration << " ms" << endl;
+		logFile << "Time Per Event: " << duration/(largest_nentry-lowest_nentry) << " ms" << endl;
 	}
 	logFile.close();
 

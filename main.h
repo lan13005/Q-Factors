@@ -45,7 +45,8 @@ class QFactorAnalysis{
                 int startMemResident;
                 int endMemResident;
 	
-		std::chrono::time_point<std::chrono::high_resolution_clock> start2;
+		std::chrono::time_point<std::chrono::high_resolution_clock> start;
+		std::chrono::time_point<std::chrono::high_resolution_clock> startFirstEvent;
                 
                 // These block of variables will be used to hold the initialization parameters. In the Q-factor paper they use 3 different initializations which
                 // correspond to 100% bkg, 50/50, and 100% sig. If we want to do this here, the yields in the bkg and signal need to be modified. These vectors
@@ -66,7 +67,7 @@ class QFactorAnalysis{
 		std::vector<int> phasePoint2PotentialNeighbor; 
 	
 	public:
-		QFactorAnalysis(){ start2 = std::chrono::high_resolution_clock::now(); };
+		QFactorAnalysis(){};
 		void initialize(string rootFileLoc, string rootTreeName);
 		void loadFitParameters(string fitLocation,string cwd);
 		void loadData();
