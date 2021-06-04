@@ -18,17 +18,21 @@
 #include "TH1.h"
 #include "TF1.h"
 #include "TStyle.h"
+#include "TLegend.h"
+#include "TFile.h"
+#include "../../configSettings.h"
 
 // This is the script that is used to draw the fit results including its x-y projections
 // and what the PDFs look like in 2D. 
 void draw2DPlots(
-        RooAbsRealLValue* x, RooAbsRealLValue* y, vector<vector<float>> vect, int neighborIdx, int nentries, 
+        RooAbsRealLValue* x, RooAbsRealLValue* y, vector<vector<float>> vect, int ientry, int nentries, 
         RooAbsPdf* model, RooAbsPdf* bkg, RooAbsPdf* sig, 
         RooDataSet* data, RooAbsRealLValue* nsig, RooAbsRealLValue* nbkg,
-        TCanvas* c
-        //, TH1* model_hist, TH1* model_sig, TH1* model_bkg
+        TH1* dHist_qvaluesBS, double best_qvalue, int iBS,
+        TCanvas* c, TFile* qHistsFile
         ){
     using namespace RooFit;
+    qHistsFile->cd();
     gStyle->SetLabelSize(0.0525,"xyz");//55,"xyz"); // size of axis value font
     gStyle->SetTitleSize(0.0525,"xyz");//06,"xyz"); // size of axis title font
     gStyle->SetTitleFont(42,"xyz"); // font option
@@ -37,8 +41,8 @@ void draw2DPlots(
 
     c->Divide(3,2);
 
-    float valX=vect[0][neighborIdx];
-    float valY=vect[1][neighborIdx];
+    float valX=vect[0][ientry];
+    float valY=vect[1][ientry];
     x->setVal(valX);
     y->setVal(valY);
     
@@ -150,7 +154,12 @@ void draw2DPlots(
                         ).c_str());
     xframe2->GetXaxis()->SetTitle((namey+" "+xframe2->GetXaxis()->GetTitle()).c_str());
     
-//    delete gROOT->FindObject("");
+
+    c->cd(3);
+    TH1* data2DHist = data->createHistogram("data2D",*x,Binning((int)locxbins/3),YVar(*y,Binning((int)locybins/3))) ;
+    data2DHist->GetXaxis()->SetTitle(namex.c_str());
+    data2DHist->GetYaxis()->SetTitle(namey.c_str());
+    data2DHist->Draw("COLZ");
 
     ////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////
@@ -166,12 +175,14 @@ void draw2DPlots(
 
 
     // PLOT PDF ON 2D 
-    c->cd(3);
+    c->cd(4);
     gPad->SetTopMargin(0.225);
     gPad->SetRightMargin(0.2);
     int pdfBins=locxbins*locybins;
     TH1* model_hist = model->createHistogram((namex+","+namey).c_str(),locxbins,locybins);
     model_hist->SetStats(0);
+    model_hist->GetXaxis()->SetTitle(namex.c_str());
+    model_hist->GetYaxis()->SetTitle(namey.c_str());
     model_hist->Scale(locxbinsize*locybinsize);
     newLine->SetLineColor(kRed);
     model_hist->Draw("COLZ");
@@ -182,40 +193,77 @@ void draw2DPlots(
     fx_bkg = bkg->getVal(RooArgList(*x,*y))*(1-sigFrac)*nentries*locxbinsize*locybinsize;
     model_hist->SetTitle(("#splitline{PDF f("+namex+","+namey+")="+std::to_string(fx)+"}{Q("+namex+","+namey+")="+std::to_string(fx_sig/(fx_bkg+fx_sig))+"}").c_str());
 
-    // PLOT SIGNAL PDF ON 2D 
-    c->cd(4);
-    gPad->SetRightMargin(0.2);
-    gPad->SetBottomMargin(0.2);
-    TH1* model_sig = sig->createHistogram((namex+","+namey).c_str(),locxbins,locybins);
-    model_sig->SetStats(0);
-    model_sig->Scale(sigFrac*nentries);//*locxbins/locxrange*locybins/locyrange);
-    newLine->SetLineColor(kRed);
-    model_sig->Draw("COLZ");
-    newLine->DrawLine(model_sig->GetXaxis()->GetXmin(),valY,model_sig->GetXaxis()->GetXmax(),valY);    
-    newLine->DrawLine(valX,model_sig->GetYaxis()->GetXmin(),valX,model_sig->GetYaxis()->GetXmax());    
-    model_sig->SetTitle(("Signal PDF   f("+namex+","+namey+")="+std::to_string(fx_sig)).c_str());
-
-    // PLOT BACKGROUND PDF ON 2D 
-    c->cd(5);
-    gPad->SetRightMargin(0.2);
-    gPad->SetBottomMargin(0.2);
-    TH1* model_bkg = bkg->createHistogram((namex+","+namey).c_str(),locxbins,locybins);
-    model_bkg->Scale((1-sigFrac)*nentries);//*locxbins/locxrange*locybins/locyrange);
-    model_bkg->SetStats(0);
-    newLine->SetLineColor(kRed);
-    model_bkg->Draw("COLZ");
-    newLine->DrawLine(model_bkg->GetXaxis()->GetXmin(),valY,model_bkg->GetXaxis()->GetXmax(),valY);    
-    newLine->DrawLine(valX,model_bkg->GetYaxis()->GetXmin(),valX,model_bkg->GetYaxis()->GetXmax());    
-    model_bkg->SetTitle(("Bkg PDF   f("+namex+","+namey+")="+std::to_string(fx_bkg)).c_str());
+//    // PLOT SIGNAL PDF ON 2D 
+//    c->cd(4);
+//    gPad->SetRightMargin(0.2);
+//    gPad->SetBottomMargin(0.2);
+//    TH1* model_sig = sig->createHistogram((namex+","+namey).c_str(),locxbins,locybins);
+//    model_sig->SetStats(0);
+//    model_sig->Scale(sigFrac*nentries);//*locxbins/locxrange*locybins/locyrange);
+//    newLine->SetLineColor(kRed);
+//    model_sig->Draw("COLZ");
+//    newLine->DrawLine(model_sig->GetXaxis()->GetXmin(),valY,model_sig->GetXaxis()->GetXmax(),valY);    
+//    newLine->DrawLine(valX,model_sig->GetYaxis()->GetXmin(),valX,model_sig->GetYaxis()->GetXmax());    
+//    model_sig->SetTitle(("Signal PDF   f("+namex+","+namey+")="+std::to_string(fx_sig)).c_str());
+//
+//    // PLOT BACKGROUND PDF ON 2D 
+//    c->cd(5);
+//    gPad->SetRightMargin(0.2);
+//    gPad->SetBottomMargin(0.2);
+//    TH1* model_bkg = bkg->createHistogram((namex+","+namey).c_str(),locxbins,locybins);
+//    model_bkg->Scale((1-sigFrac)*nentries);//*locxbins/locxrange*locybins/locyrange);
+//    model_bkg->SetStats(0);
+//    newLine->SetLineColor(kRed);
+//    model_bkg->Draw("COLZ");
+//    newLine->DrawLine(model_bkg->GetXaxis()->GetXmin(),valY,model_bkg->GetXaxis()->GetXmax(),valY);    
+//    newLine->DrawLine(valX,model_bkg->GetYaxis()->GetXmin(),valX,model_bkg->GetYaxis()->GetXmax());    
+//    model_bkg->SetTitle(("Bkg PDF   f("+namex+","+namey+")="+std::to_string(fx_bkg)).c_str());
+    
+    /////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////// BOOTSTRAP HISTOGRAM OF Q-FACTORS
+    auto legend_qVal = new TLegend(0.1,0.7,0.4,0.9);
+    TLine* qValLine = new TLine(best_qvalue,0,best_qvalue,nBS);
+    if (nBS>0){
+        c->cd(6);
+        dHist_qvaluesBS->Draw();
+        qValLine->SetLineColor(kOrange);
+        legend_qVal->AddEntry(qValLine,"True Q Value");
+        qValLine->Draw("SAME");
+        legend_qVal->AddEntry(dHist_qvaluesBS,"Bootstrapped Q Values");
+        legend_qVal->Draw();
+    }
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    
+    // need to save as a root file first then convert to pngs or whatever. 
+    //      Seems like saveas doesnt like threaded since the processes might make only one png converter
+    //      or whatever and maybe if multiple threads calls it then a blocking effect can happen
+    if(iBS==nBS){
+        c->Write(("Mass-event"+std::to_string(ientry)).c_str());
+        qHistsFile->Close();
+    }
+    else{
+        c->Write(("Mass-event"+std::to_string(ientry)+"BS"+to_string(iBS)).c_str());
+    }
+                            
+    //delete xframe;
+    //delete xframe2;
+    delete model_hist;
+    delete newLine;
+    delete floatPars;
+    delete data2DHist;
+    delete legend_qVal;
+    delete qValLine;
 }
 
 void draw1DPlots(
-        RooAbsRealLValue* x, vector<vector<float>> vect, int neighborIdx, int nentries, 
+        RooAbsRealLValue* x, vector<vector<float>> vect, int ientry, int nentries, 
         RooAbsPdf* model, RooAbsPdf* bkg, RooAbsPdf* sig, 
         RooDataSet* data, RooAbsRealLValue* nsig, RooAbsRealLValue* nbkg,
-        TCanvas* c
-        //, TH1* model_hist, TH1* model_sig, TH1* model_bkg
+        TH1* dHist_qvaluesBS, double best_qvalue, int iBS,
+        TCanvas* c, TFile* qHistsFile
         ){
+    qHistsFile->cd();
     using namespace RooFit;
     gStyle->SetLabelSize(0.0525,"xyz");//55,"xyz"); // size of axis value font
     gStyle->SetTitleSize(0.0525,"xyz");//06,"xyz"); // size of axis title font
@@ -223,7 +271,7 @@ void draw1DPlots(
     gStyle->SetPadGridX(1);  // Beni likes this
     gStyle->SetPadGridY(1); 	
 
-    float valX=vect[0][neighborIdx];
+    float valX=vect[0][ientry];
     x->setVal(valX);
     
     string namex = x->GetName();
@@ -296,6 +344,38 @@ void draw1DPlots(
                         "{effective yield="+std::to_string(nentries)+"   reduced ChiSq="+std::to_string(chiSq)+"}}"
                         ).c_str());
     xframe->GetXaxis()->SetTitle((namex+" "+xframe->GetXaxis()->GetTitle()).c_str());
+
+    /////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////// BOOTSTRAP HISTOGRAM OF Q-FACTORS
+    auto legend_qVal = new TLegend(0.1,0.7,0.4,0.9);
+    TLine* qValLine = new TLine(best_qvalue,0,best_qvalue,nBS);
+    if (nBS>0){
+        c->cd(6);
+        dHist_qvaluesBS->Draw();
+        qValLine->SetLineColor(kOrange);
+        legend_qVal->AddEntry(qValLine,"True Q Value");
+        qValLine->Draw("SAME");
+        legend_qVal->AddEntry(dHist_qvaluesBS,"Bootstrapped Q Values");
+        legend_qVal->Draw();
+    }
+    /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
+    
+    // need to save as a root file first then convert to pngs or whatever. 
+    //      Seems like saveas doesnt like threaded since the processes might make only one png converter
+    //      or whatever and maybe if multiple threads calls it then a blocking effect can happen
+    if(iBS==nBS){
+        c->Write(("Mass-event"+std::to_string(ientry)).c_str());
+        qHistsFile->Close();
+    }
+    else{
+        c->Write(("Mass-event"+std::to_string(ientry)+"BS"+to_string(iBS)).c_str());
+    }
+
+    delete legend_qVal;
+    delete qValLine;
+    delete xframe;
+    delete floatPars;
 }
 
 #endif

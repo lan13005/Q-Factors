@@ -53,7 +53,7 @@ _SET_discrimVars="Mpi0;Meta"
 _SET_nProcess=5
 _SET_kDim=300
 _SET_nentries=500
-_SET_numberEventsToSavePerProcess=2
+_SET_numberEventsToSavePerProcess=0
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 
 _SET_redistributeBkgSigFits=0 

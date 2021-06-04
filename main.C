@@ -265,8 +265,6 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 	// Define some needed variables like canvases, histograms, and legends
 	cout << "Creating canvas " << iProcess << endl;
     	TCanvas *allCanvases = new TCanvas(("anyHists"+to_string(iProcess)).c_str(),"",1440,900);
-        auto legend_qVal = new TLegend(0.1,0.7,0.4,0.9);
-        TLine* qValLine;
         TH1F* dHist_qvaluesBS = new TH1F(("qvaluesBS"+to_string(iProcess)).c_str(),"Bootstrapped Q-Factors",100,0,1);
 
         // Variables to keep track of phase space neighbors
@@ -551,7 +549,6 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
         	        if ( selectRandomIdxToSave.find(ientry) != selectRandomIdxToSave.end() || saveAllHistograms) {
         	            // Here we draw the histograms that were randomly selected
         	            allCanvases->Clear();
-                            legend_qVal->Clear();
 
 		            duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
 		            cout <<	"\tSaving diagnostic histogram: " << duration << "ms" << endl;
@@ -578,57 +575,26 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                             params=fm.getParameters();//fm.rooSigPlusBkg->getParameters(RooArgList(*fm.roo_Mpi0,*fm.roo_Meta));
                             *params = *savedParams;
 
-                            //TH1* model_hist;
-                            //TH1* model_sig;
-                            //TH1* model_bkg; // need these pointers to pass to drawPlots so we can properly clean these objects afterwards
-                            fm.drawFitPlots(discrimVars, ientry, allCanvases);
-                            //fm.drawFitPlots(discrimVars[0][ientry], discrimVars[1][ientry], allCanvases);
-                            //draw2DPlots(fm.roo_Mpi0, fm.roo_Meta,discrimVars[0][ientry], discrimVars[1][ientry], eff_nentries, 
-                            //            fm.rooSigPlusBkg, fm.rooBkg, fm.rooSig, fm.rooData, fm.nsig, fm.nbkg, allCanvases, model_hist,model_sig,model_bkg);
-                            
                             /////////////////////////////////////////////////////////////////////////
                             ////////////////////////////////////// BOOTSTRAP HISTOGRAM OF Q-FACTORS
-                            //c->cd(6);
-                            //gPad->SetRightMargin(0.2);
-                            //gPad->SetBottomMargin(0.2);
-                            //if (iBS==nBS){
-                            //    qvalueBS_std=calculateStd(nBS,&qvalues[0]);
-                            //    dHist_qvaluesBS->SetTitle(("STD: "+to_string(qvalueBS_std)).c_str());
-                            //}
-                            //else{
-                            //    dHist_qvaluesBS->SetTitle("Bootstrapped Q-Factors");
-                            //}
-                            //dHist_qvaluesBS->Draw();
-        	            //qValLine = new TLine(best_qvalue,0,best_qvalue,nBS);
-        	            //qValLine->SetLineColor(kOrange);
-                            //legend_qVal->AddEntry(qValLine,"True Q Value");
-                            //qValLine->Draw("SAME");
-                            //legend_qVal->AddEntry(dHist_qvaluesBS,"Bootstrapped Q Values");
-                            //legend_qVal->Draw();
-		            //if(saveEventLevelProcessSpeed){logFile <<	"\tCompleted drawing on pad 6: " << duration << "ms" << endl;}
+                            if (iBS==nBS){
+                                qvalueBS_std=calculateStd(nBS,&qvalues[0]);
+                                dHist_qvaluesBS->SetTitle(("STD: "+to_string(qvalueBS_std)).c_str());
+                            }
+                            else{
+                                dHist_qvaluesBS->SetTitle("Bootstrapped Q-Factors");
+                            }
                             /////////////////////////////////////////////////////////////////////////
                             /////////////////////////////////////////////////////////////////////////
 
-        	            // need to save as a root file first then convert to pngs or whatever. 
-                            //      Seems like saveas doesnt like threaded since the processes might make only one png converter
-        	            //      or whatever and maybe if multiple threads calls it then a blocking effect can happen
-                            qHistsFile->cd();
-                            if(iBS==nBS){
-                                allCanvases->Write(("Mass-event"+std::to_string(ientry)).c_str());
-                                qHistsFile->Close();
-                            }
-                            else {
-                                    allCanvases->Write(("Mass-event"+std::to_string(ientry)+"BS"+to_string(iBS)).c_str());
-                            }
+
+                            fm.drawFitPlots(discrimVars, ientry, dHist_qvaluesBS, best_qvalue, iBS, allCanvases, qHistsFile);
                             
         	            if(saveEventLevelProcessSpeed){
         	                 duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() 
                                              - duration_beginEvent).count();
         	                 logFile << "\tSaved this histogram since it was randomly selected: +" << duration <<  "ms" << endl;
         	            }
-                            //delete model_hist;
-                            //delete model_sig;
-                            //delete model_bkg;
 		        } 
                     } // closes condition to save histograms
                     delete params;

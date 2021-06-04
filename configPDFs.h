@@ -108,9 +108,9 @@ class fitManager
             rooData = new RooDataSet{("rooData"+iProcess).c_str(),"rooData",RooArgSet(*x,*y,*w),RooFit::WeightVar(*w)};
             /////////////// FOR SIGNAL PDF
             px = new RooRealVar{("px"+iProcess).c_str(),"px",initMassX};
-            sx = new RooRealVar{("sx"+iProcess).c_str(),"sx",initSigmaX,initSigmaX*0.5,initSigmaX*2};
+            sx = new RooRealVar{("sx"+iProcess).c_str(),"sx",initSigmaX,initSigmaX,initSigmaX*3};
             py = new RooRealVar{("py"+iProcess).c_str(),"py",initMassY};
-            sy = new RooRealVar{("sy"+iProcess).c_str(),"sy",initSigmaY,initSigmaY*0.5,initSigmaY*2};
+            sy = new RooRealVar{("sy"+iProcess).c_str(),"sy",initSigmaY,initSigmaY,initSigmaY*3};
             rho = new RooRealVar{("rho"+iProcess).c_str(),"rho",initRho,-0.9,0.9};
             //rooGausPi0 = new RooGaussian{("rooGausPi0_"+iProcess).c_str(), "rooGausPi0", *x, *px, *sx};
             //rooGausEta = new RooGaussian{("rooGausEta_"+iProcess).c_str(), "rooGausEta", *y, *py, *sy};
@@ -173,9 +173,11 @@ class fitManager
             nbkg->setVal((1-initSigFrac)*eff_nentries);
         }
 
-        float calculate_q(vector<vector<float>> &vect, int neighborIdx){
-            x->setVal(vect[0][neighborIdx]);
-            y->setVal(vect[1][neighborIdx]);
+        float calculate_q(vector<vector<float>> &vect, int ientry){
+            // vect contains the discriminating variables (i.e. Mpi0 and Meta)
+            // ientry is the entry in the root tree we are trying to calculate the q-value for
+            x->setVal(vect[0][ientry]);
+            y->setVal(vect[1][ientry]);
             float sigFrac = nsig->getVal()/(nsig->getVal()+nbkg->getVal());
             float sigPdfVal = sigFrac*rooSig->getVal(RooArgSet(*x,*y));
             float bkgPdfVal = (1-sigFrac)*rooBkg->getVal(RooArgSet(*x,*y));
@@ -188,13 +190,13 @@ class fitManager
             return qvalue;
         }
 
-        bool insert(vector<vector<float>> &vect, int neighborIdx, float weight){
+        bool insert(vector<vector<float>> &vect, int ientry, float weight){
             // with 600 neighbors it seems like the fitTo command takes ~2x longer when using Range() argument which selects the fit range.
             // This is equivalent to shrinking the dataset range and fitting over the full range which will save time.
             // It might be useful to think of setting a fit range as to lower the effective number of nearest neighbors. Another thing that lowers
             // the effective number of neighbors is any weights we apply to the filling of the histograms
-            float xval = vect[0][neighborIdx];
-            float yval = vect[1][neighborIdx];
+            float xval = vect[0][ientry];
+            float yval = vect[1][ientry];
             bool keptNeighbor = ( yval > fitRangeY[0] && 
                                   yval < fitRangeY[1] &&
                                   xval > fitRangeX[0] &&
@@ -215,11 +217,19 @@ class fitManager
             return rooSigBkg->getParameters(RooArgList(*x,*y));
         }
 
-        void drawFitPlots(vector<vector<float>> &vect, int neighborIdx, TCanvas* c){
-            draw2DPlots(x, y, vect, neighborIdx, eff_nentries, 
-                            rooSigBkg, rooBkg, rooSig, rooData, nsig, nbkg, c);//, model_hist, model_sig, model_bkg);
-            //draw1DPlots(y, vect, neighborIdx, eff_nentries, 
-            //                rooSigBkg, rooBkg, rooSig, rooData, nsig, nbkg, c);//, model_hist, model_sig, model_bkg);
+        void drawFitPlots(vector<vector<float>> &vect, int ientry, TH1* dHist_qvaluesBS, double best_qvalue, int iBS, TCanvas* c, TFile* qHistsFile){
+            // vect contains the discriminating variables (i.e. Mpi0 and Meta)
+            // ientry is the entry in the root tree we are trying to calculate the q-value for
+            // dHist_qvaluesBS is the histogram of the boostrapped qvalues
+            // best_qvalue is taken from the best fitted qvalue if we do multiple fits per entry
+            // iBS is the current bootstrap iteration. Useful if we wanted to see how each bootstrap iteration looks like
+            // qHistsFile is the TFile we will save to
+            draw2DPlots(x, y, vect, ientry, eff_nentries, 
+                            rooSigBkg, rooBkg, rooSig, rooData, nsig, nbkg, 
+                            dHist_qvaluesBS, best_qvalue, iBS, c, qHistsFile);
+            //draw1DPlots(y, vect, ientry, eff_nentries, 
+            //                rooSigBkg, rooBkg, rooSig, rooData, nsig, nbkg, 
+            //                dHist_qvaluesBS, best_qvalue, iBS, c, qHistsFile);
         }
 
         RooFitResult* fit(){
@@ -232,7 +242,7 @@ class fitManager
             //   https://root.cern.ch/doc/master/rf611__weightedfits_8C.html
             return  rooSigBkg->fitTo(*rooData, 
                     RooFit::Save(), 
-                    //RooFit::PrintLevel(-1), 
+                    RooFit::PrintLevel(-1), 
                     RooFit::BatchMode(true), 
                     RooFit::SumW2Error(true),//false),
                     //RooFit::AsymptoticError(true), 
