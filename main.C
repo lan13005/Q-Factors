@@ -493,7 +493,8 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                             cout << "QVALUE IS NAN!" << endl;
                         }
 
-		        if(saveEventLevelProcessSpeed){logFile <<	"\tExtracted q-value (" << qvalue << "): " << duration << "ms" << endl;}
+		        duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
+		        if(saveEventLevelProcessSpeed){logFile <<	"\tExtracted q-value (" << qvalue << "): +" << duration << "ms" << endl;}
                         
 		    	NLL = roo_result->minNll();
 		    	if (NLL < bestNLL){
@@ -552,8 +553,9 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
         	            allCanvases->Clear();
                             legend_qVal->Clear();
 
+		            duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
 		            cout <<	"\tSaving diagnostic histogram: " << duration << "ms" << endl;
-		            if(saveEventLevelProcessSpeed){logFile <<	"\tSaving histogram: " << duration << "ms" << endl;}
+		            if(saveEventLevelProcessSpeed){logFile <<	"\tSaving histogram: +" << duration << "ms" << endl;}
                             /// -- Might need to use this code section if RooFit ever becomes thread safe. 
                             //         If we draw rooSigPlusBkg with the various Components we get an error when using plotOn
                             ///        when using multi threads. Projecting each sub PDF makes it work fine. 

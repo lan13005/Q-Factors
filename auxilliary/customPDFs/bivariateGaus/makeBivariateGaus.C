@@ -26,7 +26,7 @@ void makeBivariateGaus()
     string coeff="1/(2*3.14157*sx*sy*sqrt(1-pow(r,2)))";
     string argCoeff="-1/(2*(1-pow(r,2)))";
     string xterm="((x-px)/sx)";
-    string yterm="((y-py)/py)";
+    string yterm="((y-py)/sy)";
     string crossterm="-2*r*"+xterm+"*"+yterm;
     string expression=coeff+"*exp("+argCoeff+"*(pow("+xterm+",2)"+crossterm+"+pow("+yterm+",2)))";
     cout << "Signal expression: " << expression << endl;

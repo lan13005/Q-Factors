@@ -50,9 +50,9 @@ _SET_accWeight="AccWeight"
 _SET_sbWeight="weightBS" 
 _SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi"#phi_X_lab" 
 _SET_discrimVars="Mpi0;Meta" 
-_SET_nProcess=48
+_SET_nProcess=5
 _SET_kDim=300
-_SET_nentries=-1
+_SET_nentries=500
 _SET_numberEventsToSavePerProcess=2
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 

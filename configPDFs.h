@@ -44,6 +44,7 @@ class fitManager
         float initMassY = 0.549354;
         float initSigmaX = 0.00612767;
         float initSigmaY = 0.0166494;
+        float initRho = 0.0;
         float initBernA = 0.5;
         float initBernB = 0.5;
         float initBernC = 0.5;
@@ -107,10 +108,10 @@ class fitManager
             rooData = new RooDataSet{("rooData"+iProcess).c_str(),"rooData",RooArgSet(*x,*y,*w),RooFit::WeightVar(*w)};
             /////////////// FOR SIGNAL PDF
             px = new RooRealVar{("px"+iProcess).c_str(),"px",initMassX};
-            sx = new RooRealVar{("sx"+iProcess).c_str(),"sx",initSigmaX,initSigmaX*0.5,initSigmaX*4};
+            sx = new RooRealVar{("sx"+iProcess).c_str(),"sx",initSigmaX,initSigmaX*0.5,initSigmaX*2};
             py = new RooRealVar{("py"+iProcess).c_str(),"py",initMassY};
-            sy = new RooRealVar{("sy"+iProcess).c_str(),"sy",initSigmaY,initSigmaY*0.5,initSigmaY*4};
-            rho = new RooRealVar(("rho"+iProcess).c_str(),"rho",0);//,-0.999,0.999);
+            sy = new RooRealVar{("sy"+iProcess).c_str(),"sy",initSigmaY,initSigmaY*0.5,initSigmaY*2};
+            rho = new RooRealVar{("rho"+iProcess).c_str(),"rho",initRho,-0.9,0.9};
             //rooGausPi0 = new RooGaussian{("rooGausPi0_"+iProcess).c_str(), "rooGausPi0", *x, *px, *sx};
             //rooGausEta = new RooGaussian{("rooGausEta_"+iProcess).c_str(), "rooGausEta", *y, *py, *sy};
             /////////////// FOR BKG PDF
@@ -122,11 +123,11 @@ class fitManager
                 ,("bern_parC"+iProcess+"*y"+iProcess+"+bern_parD"+iProcess+"*(1-y"+iProcess+")").c_str()
                 ,RooArgSet(*bern_parC,*bern_parD,*y)};
             rooGausPi0_bkg = new RooGaussian{("rooGausPi0_bkg"+iProcess).c_str(), "rooGausPi0_bkg", *x, *px, *sx};
-            rooBkgX = new RooGenericPdf(("rooBkgX"+iProcess).c_str(), "rooBkgX"
+            rooBkgX = new RooGenericPdf{("rooBkgX"+iProcess).c_str(), "rooBkgX"
                 ,("bern_parA"+iProcess+"*x"+iProcess+"+bern_parB"+iProcess+"*(1-x"+iProcess+")").c_str()
-                ,RooArgSet(*bern_parA,*bern_parB,*x));
-            bkgPeakFrac = new RooRealVar(("bkgPeakFrac"+iProcess).c_str(),"bkgPeakFrac",initbkgPeakFrac,0,1);
-            rooBkgXplusPi0Peak = new RooAddPdf(("rooBkgXplusPi0Peak"+iProcess).c_str(), "rooBkgXplusPi0Peak", RooArgList(*rooGausPi0_bkg,*rooBkgX),RooArgSet(*bkgPeakFrac));
+                ,RooArgSet(*bern_parA,*bern_parB,*x)};
+            bkgPeakFrac = new RooRealVar{("bkgPeakFrac"+iProcess).c_str(),"bkgPeakFrac",initbkgPeakFrac,0,1};
+            rooBkgXplusPi0Peak = new RooAddPdf{("rooBkgXplusPi0Peak"+iProcess).c_str(), "rooBkgXplusPi0Peak", RooArgList(*rooGausPi0_bkg,*rooBkgX),RooArgSet(*bkgPeakFrac)};
             /////////////// FOR YIELDS
             nsig = new RooRealVar{("nsig"+iProcess).c_str(),"nsig",(float)kDim/2,0,(float)kDim};
             nbkg = new RooRealVar{("nbkg"+iProcess).c_str(),"nbkg",(float)kDim/2,0,(float)kDim};
@@ -140,21 +141,20 @@ class fitManager
             //rooSig = new RooProdPdf{("rooSig"+iProcess).c_str(), "rooSig", RooArgSet(*rooGausPi0,*rooGausEta)};
             //rooSig = new RooGenericPdf(("rooSig"+iProcess).c_str(), "Bivariate Gaussian", expression.c_str(),
             //    RooArgList(*x, *y, *rho, *px, *sx, *py, *sy) );
-            string coeff="1/(2*3.14157*sx"+iProcess+"*sy"+iProcess+"*sqrt(1-pow(rho"+iProcess+",2)))";
-            string argCoeff="-1/(2*(1-pow(rho"+iProcess+",2)))";
-            string xterm="((x"+iProcess+"-px"+iProcess+")/sx"+iProcess+")";
-            string yterm="((y"+iProcess+"-py"+iProcess+")/py"+iProcess+")";
-            string crossterm="-2*rho"+iProcess+"*"+xterm+"*"+yterm;
-            string expression=coeff+"*exp("+argCoeff+"*(pow("+xterm+",2)"+crossterm+"+pow("+yterm+",2)))";
-            cout << "Signal expression: " << expression << endl;
-            rooSig = new bivariateGaus(("rooSig"+iProcess).c_str(), "Bivariate Gaussian",
-                *x, *y, *px, *sx, *py, *sy, *rho );
+            //string coeff="1/(2*3.14157*sx"+iProcess+"*sy"+iProcess+"*sqrt(1-pow(rho"+iProcess+",2)))";
+            //string argCoeff="-1/(2*(1-pow(rho"+iProcess+",2)))";
+            //string xterm="((x"+iProcess+"-px"+iProcess+")/sx"+iProcess+")";
+            //string yterm="((y"+iProcess+"-py"+iProcess+")/py"+iProcess+")";
+            //string crossterm="-2*rho"+iProcess+"*"+xterm+"*"+yterm;
+            //string expression=coeff+"*exp("+argCoeff+"*(pow("+xterm+",2)"+crossterm+"+pow("+yterm+",2)))";
+            //cout << "Signal expression: " << expression << endl;
+            rooSig = new bivariateGaus{("rooSig"+iProcess).c_str(), "Bivariate Gaussian", *x, *y, *px, *sx, *py, *sy, *rho };
             //rooSig =
             //   RooClassFactory::makePdfInstance(("rooSig"+iProcess).c_str(), coeff.c_str(), RooArgList(*x, *y, *rho, *px, *sx, *py, *sy) );
             //rooSig = new RooGenericPdf(("rooSig"+iProcess).c_str(), "Bivariate Gaussian", expression.c_str(),
             //    RooArgList(*x, *y, *rho, *px, *sx, *py, *sy) );
-            rooBkg = new RooProdPdf(("rooBkg"+iProcess).c_str(),"rooBkg",RooArgList(*rooBkgXplusPi0Peak,*rooBkgY));
-            rooSigBkg = new RooAddPdf(("rooSumPdf"+iProcess).c_str(), "rooSumPdf", RooArgList(*rooSig,*rooBkg),RooArgSet(*nsig,*nbkg));
+            rooBkg = new RooProdPdf{("rooBkg"+iProcess).c_str(),"rooBkg",RooArgList(*rooBkgXplusPi0Peak,*rooBkgY)};
+            rooSigBkg = new RooAddPdf{("rooSumPdf"+iProcess).c_str(), "rooSumPdf", RooArgList(*rooSig,*rooBkg),RooArgSet(*nsig,*nbkg)};
         }
 
         void reinitialize(float initSigFrac){
@@ -162,7 +162,7 @@ class fitManager
             py->setVal(initMassY);
             sx->setVal(initSigmaX);
             sy->setVal(initSigmaY);
-            rho->setVal(0);
+            rho->setVal(initRho);
             bern_parA->setVal(initBernA);
             bern_parB->setVal(initBernB);
             bern_parC->setVal(initBernC);
@@ -227,14 +227,16 @@ class fitManager
             //   use Minos then nsig+nbkg doesnt even sum to the orignal entries...
             //   lets not use minos for now since it significantly speeds things up. Bootstrapping might help alleviate this problem
             //   https://root-forum.cern.ch/t/parameter-uncertainties-by-rooabspdf-fitto-for-weighted-data-depend-on-minos-option-if-sumw2error-is-set-too/39599/4
+            // SumW2Error - errors calculated from the inverse hessian does not give good coverage for weighted data. Setting to false is better for weighted I think? 
+            // AsymptoticError - correct in the large N limit
             //   https://root.cern.ch/doc/master/rf611__weightedfits_8C.html
             return  rooSigBkg->fitTo(*rooData, 
                     RooFit::Save(), 
-                    RooFit::PrintLevel(-1), 
+                    //RooFit::PrintLevel(-1), 
                     RooFit::BatchMode(true), 
-                    RooFit::SumW2Error(true)
-                    //AsymptoticError(true)), 
-                    //Hesse(kFALSE));
+                    RooFit::SumW2Error(true),//false),
+                    //RooFit::AsymptoticError(true), 
+                    RooFit::Hesse(kFALSE)
                     );
         }
 };
