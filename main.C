@@ -51,7 +51,7 @@ void QFactorAnalysis::loadData(){
 	// -----------------------------------------------------
 	// -----------------------------------------------------
 	// Create variables to hold the data as we read in the data from the tree
-        // We MUST match the data type of the input branch. There are two cases I will consider: {float, double} 
+        // We MUST match the data type of the input branch. There are three cases I will consider: {float, double, Long64} 
         //   We will keep track of what data type a specific branch used and fill accordingly. Only these variables we
         //   use to SetBranchAddress needs to match. We can fill a double or a float into a vector<float>. Using floats
         //   saves memory so its worth the effort
@@ -59,10 +59,13 @@ void QFactorAnalysis::loadData(){
         double discrimVar[discrimVarDim];
         float phaseSpaceVar_f[phaseSpaceDim];
         float discrimVar_f[discrimVarDim];
+        Long64_t phaseSpaceVar_l[phaseSpaceDim];
+        Long64_t discrimVar_l[discrimVarDim];
         string phaseSpaceDataTypes[phaseSpaceDim];
         string discrimVarDataTypes[discrimVarDim];  
 	double accWeight;
 	float accWeight_f;
+        Long64_t accWeight_l;
         string weightType;
 
 	// Set branch addresses so we can read in the data
@@ -73,14 +76,14 @@ void QFactorAnalysis::loadData(){
         if ( parsePhaseSpace.varStringSet.size() != phaseSpaceDim ) { cout << "Uh-oh something went wrong. varString size not right size" << endl; }
 	for (int iVar=0; iVar<phaseSpaceDim; ++iVar){
             dataTree->SetBranchStatus(parsePhaseSpace.varStringSet[iVar].c_str(),1);
-            typeName=setBranchAddress(dataTree, parsePhaseSpace.varStringSet[iVar], &phaseSpaceVar_f[iVar], &phaseSpaceVar[iVar]);
+            typeName=setBranchAddress(dataTree, parsePhaseSpace.varStringSet[iVar], &phaseSpaceVar_l[iVar], &phaseSpaceVar_f[iVar], &phaseSpaceVar[iVar]);
             phaseSpaceDataTypes[iVar]=typeName;
         }
 	parseDiscrimVars.parseString(s_discrimVar);
         if ( parseDiscrimVars.varStringSet.size() != discrimVarDim ) { cout << "Uh-oh something went wrong. discrimVar string size not right size" << endl; }
 	for (int iVar=0; iVar<discrimVarDim; ++iVar){
             dataTree->SetBranchStatus(parseDiscrimVars.varStringSet[iVar].c_str(),1);
-            typeName=setBranchAddress(dataTree, parseDiscrimVars.varStringSet[iVar], &discrimVar_f[iVar], &discrimVar[iVar]);
+            typeName=setBranchAddress(dataTree, parseDiscrimVars.varStringSet[iVar], &discrimVar_l[iVar], &discrimVar_f[iVar], &discrimVar[iVar]);
             discrimVarDataTypes[iVar]=typeName;
         }
 
@@ -90,7 +93,7 @@ void QFactorAnalysis::loadData(){
         // Setting up tracking of accidental weights
         if (!s_accWeight.empty()){ // if string is not empty we will set the branch address
             dataTree->SetBranchStatus(s_accWeight.c_str(),1);
-            weightType=setBranchAddress(dataTree, s_accWeight, &accWeight_f, &accWeight);
+            weightType=setBranchAddress(dataTree, s_accWeight, &accWeight_l, &accWeight_f, &accWeight);
             cout << "Using weights in branch: "+s_accWeight << endl;
         }
         else{
@@ -113,6 +116,8 @@ void QFactorAnalysis::loadData(){
                         phaseSpaceVars[iVar].push_back(phaseSpaceVar_f[iVar]);
                     if (phaseSpaceDataTypes[iVar]=="Double_t")
                         phaseSpaceVars[iVar].push_back(phaseSpaceVar[iVar]);
+                    if (phaseSpaceDataTypes[iVar]=="Long64_t")
+                        phaseSpaceVars[iVar].push_back(phaseSpaceVar_l[iVar]);
                     //if (saveMemUsage)
                     //    outputMemUsage(pinfo,"loaded phaseSpace iVar "+to_string(iVar)+": ");
                 }
@@ -121,6 +126,8 @@ void QFactorAnalysis::loadData(){
                         discrimVars[iVar].push_back(discrimVar_f[iVar]);
                     if (discrimVarDataTypes[iVar]=="Double_t")
                         discrimVars[iVar].push_back(discrimVar[iVar]);
+                    if (discrimVarDataTypes[iVar]=="Long64_t")
+                        discrimVars[iVar].push_back(discrimVar_l[iVar]);
                     //if (saveMemUsage)
                     //    outputMemUsage(pinfo,"loaded discrimVar iVar "+to_string(iVar)+": ");
                 }
@@ -128,6 +135,8 @@ void QFactorAnalysis::loadData(){
 	            accWeights.push_back(accWeight_f);
                 if (weightType=="Double_t")
 	            accWeights.push_back(accWeight);
+                if (weightType=="Long64_t")
+	            accWeights.push_back(accWeight_l);
                 //if (saveMemUsage)
                 //    outputMemUsage(pinfo,"loaded accWeight: ");
 	}
@@ -157,6 +166,13 @@ void QFactorAnalysis::loadData(){
 	// -----------------------------------------------------
 	// -----------------------------------------------------
 	//
+        cout << "standardizationType flag was set to : " << standardizationType << endl;
+        if(standardizationType=="range")
+            cout << "Using range standardization" << endl;
+        else if (standardizationType=="std")
+            cout << "Using std standardization" << endl;
+        else
+            cout << "Not standardizing phase space" << endl;
 	standardizeArray standarizationClass;
 	for (int iVar=0; iVar<phaseSpaceDim; ++iVar){
             phaseSpaceVars[iVar].push_back(phaseSpaceVar[iVar]);
@@ -227,12 +243,14 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 	// Open up a root file to save the q-factors and other diagnostics to it
 	// ---------------------------------------
         // Initializing some variables we can track during the q-value extraction
-        float NLL;
         ULong64_t flatEntryNumber;
+        float NLL;
         float bestNLL;
 	float worstNLL;
         float qvalue;
         float best_qvalue;
+        int fitStatus;
+        int best_fitStatus;
         float worst_qvalue;
         float eff_nentries;
         float qvalueBS_std=0;
@@ -247,6 +265,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
         TTree* resultsTree = new TTree(rootTreeName.c_str(),"results");
         resultsTree->Branch("flatEntryNumber",&flatEntryNumber,"flatEntryNumber/l");
         resultsTree->Branch("qvalue",&best_qvalue,"qvalue/F");
+        resultsTree->Branch("fitStatus",&best_fitStatus,"status/I");
         resultsTree->Branch("worst_qvalue",&worst_qvalue,"worst_qvalue/F");
         resultsTree->Branch("qvalueBS_std",&qvalueBS_std,"qvalueBS_std/F");
         resultsTree->Branch("bestNLL",&bestNLL,"bestNLL/F");
@@ -438,7 +457,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 		        distKNN.kNN.pop();
                         weight=accWeights[newPair.second];
 
-                        bool keptNeighbor=fm.insert(discrimVars,newPair.second,weight);
+                        bool keptNeighbor=fm.insert(discrimVars[0][newPair.second],discrimVars[1][newPair.second],weight);
                         if (keptNeighbor && saveBranchOfNeighbors){
                             neighbors[++iNeighbor]=newPair.second;
                         }
@@ -474,7 +493,16 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                         gSystem->GetProcInfo(&pinfo);
                         if (saveMemUsage)
                             outputMemUsage(pinfo,"\tBefore fitTo: ");
-                        RooFitResult* roo_result = fm.fit();
+                        NLL = fm.fit();
+                        //status = 1    : Covariance was made pos defined
+                        //status = 2    : Hesse is invalid
+                        //status = 3    : Edm is above max 
+                        //status = 4    : Reached call limit
+                        //status = 5    : Any other failure
+                        fitStatus=fm.fitStatus;
+
+                        params=fm.getParameters();
+                        params->Print("v");
                         gSystem->GetProcInfo(&pinfo);
                         if (saveMemUsage)
                             outputMemUsage(pinfo,"\tAfter fitTo: ");
@@ -483,7 +511,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 		        if(saveEventLevelProcessSpeed){logFile <<	"\tCompleted Fit: +" << duration << "ms" << endl;}
                         
                         // setting parameters for bkg/sig and extracting q-value
-                        qvalue = fm.calculate_q(discrimVars, ientry);
+                        qvalue = fm.calculate_q(discrimVars[0][ientry],discrimVars[1][ientry]);
                         
                         if ( isnan(qvalue) ){
                             params=fm.getParameters();
@@ -494,9 +522,9 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 		        duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
 		        if(saveEventLevelProcessSpeed){logFile <<	"\tExtracted q-value (" << qvalue << "): +" << duration << "ms" << endl;}
                         
-		    	NLL = roo_result->minNll();
 		    	if (NLL < bestNLL){
 		    		best_qvalue = qvalue;
+                                best_fitStatus = fitStatus;
                                 best_nsig = fm.nsig->getVal();
                                 best_nbkg = fm.nbkg->getVal();
                                 best_ntot = best_nsig + best_nbkg;
@@ -513,7 +541,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 		    		worstNLL = NLL;
                                 worst_qvalue = qvalue;
 		    	}
-                        delete roo_result;
+                        //delete roo_result;
                     
                         // Different ways to calculate chiSq: https://nbviewer.jupyter.org/gist/wiso/443934add13fd7226e4b
                         // We can calculate chiSq by binning the data and using RooChi2Var. Example calculation is at:
@@ -574,6 +602,8 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                             // reload the best params
                             params=fm.getParameters();//fm.rooSigPlusBkg->getParameters(RooArgList(*fm.roo_Mpi0,*fm.roo_Meta));
                             *params = *savedParams;
+                            //params->Print("s");
+                            fm.NLL=bestNLL;
 
                             /////////////////////////////////////////////////////////////////////////
                             ////////////////////////////////////// BOOTSTRAP HISTOGRAM OF Q-FACTORS
@@ -588,7 +618,8 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                             /////////////////////////////////////////////////////////////////////////
 
 
-                            fm.drawFitPlots(discrimVars, ientry, dHist_qvaluesBS, best_qvalue, iBS, allCanvases, qHistsFile);
+                            fm.drawFitPlots(discrimVars[0][ientry],discrimVars[1][ientry], ientry, dHist_qvaluesBS, 
+                                            best_qvalue, iBS, allCanvases, qHistsFile);
                             
         	            if(saveEventLevelProcessSpeed){
         	                 duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() 

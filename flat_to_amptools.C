@@ -96,7 +96,7 @@ void flat_to_amptools_on_tag(string tag, string fileLoc, string treeName){
     tree->SetBranchAddress(tBranch.c_str(),&mandelstam_tp);
     
     // Create output root file/tree
-    string outputFileTag=treeName+"_"+"q";
+    string outputFileTag=treeName+"_"+"tot";
     TFile* outFile; 
     TTree* outTree;
     outFile = new TFile(("amptools_"+tag+"_"+outputFileTag+".root").c_str(), "RECREATE");
@@ -154,10 +154,14 @@ void flat_to_amptools_on_tag(string tag, string fileLoc, string treeName){
         // For FLAT MC
         //weight=accidental*qvalue;
         //weight=weightASBS;
+        //
         // FOR DATA TOTAL
-        //weight=1;
+        weight=1;
+        //
         // FOR DATA SB
-        weight=1-accidental*qvalue;
+        //weight=1-accidental*qvalue;
+        //weight=1-weightASBS;
+
         // IT IS PROBABLY SAFE TO NOT FILL WEIGHT=0 EVEN FOR DATA SB WHICH WOULD BE HIGH CONFIDENCE SIGNAL. THE OUTPUT DATASET
         //      FOR DATA SB WOULD HOPEFULLY BE SMALLER THAN DATA TOTAL SINCE THERE SHOULD BE MORE SIGNAL EVENTS WHICH WOULD HAVE BKG WEIGHT = 0
         if (abs(weight)>0.0001)
@@ -180,14 +184,15 @@ void flat_to_amptools(){
     
     string fileLoc;
     string treeName;
-    string baseFolder="logs/";
 
-    for ( auto tag: tags){
-        fileLoc=baseFolder+"postQVal_flatTree.root";
-        //fileLoc=baseFolder+"logs/"+tag+"/postQVal_flatTree"+"_"+tag+".root";
-        string treeName="degALL_a2nonres_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat";
-        flat_to_amptools_on_tag(tag,fileLoc,treeName);
-    }
+    //string baseFolder="logs/";
+
+    //for ( auto tag: tags){
+    //    fileLoc=baseFolder+"postQVal_flatTree.root";
+    //    //fileLoc=baseFolder+"logs/"+tag+"/postQVal_flatTree"+"_"+tag+".root";
+    //    string treeName="degALL_a2nonres_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat";
+    //    flat_to_amptools_on_tag(tag,fileLoc,treeName);
+    //}
 }
 
 

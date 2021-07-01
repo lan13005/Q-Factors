@@ -134,7 +134,7 @@ float calc_distance( int dim, float* phaseSpace_1, float* phaseSpace_2, bool ver
         if(verbose_outputDistCalc){std::cout << "New event, new sum = " << sum << std::endl;}
 	for (int i=0; i<dim; ++i){
 		diff = phaseSpace_1[i]-phaseSpace_2[i];
-		sum += diff*diff;
+		sum += abs(diff);//diff*diff;
                 if(verbose_outputDistCalc){
                     std::cout << "phasePoint1["<<i<<"]="<<phaseSpace_1[i]<<", phasePoint2["<<i<<"]="<<phaseSpace_2[i]<<" --- squared sum=" << diff*diff << "---- total so far="<<sum<<std::endl;
 		}
@@ -229,9 +229,13 @@ void outputMemUsage(ProcInfo_t pinfo, string contextString){
     cout << contextString << pinfo.fMemResident << "KB" << endl; 
 }
 
-string setBranchAddress(TTree* tree, string variable, float* value_f, double* value){
+string setBranchAddress(TTree* tree, string variable, Long64_t* value_i, float* value_f, double* value){
     string typeName=tree->GetLeaf(variable.c_str())->GetTypeName();
-    if (typeName=="Float_t"){
+    if (typeName=="Long64_t"){
+        cout << "Setting Branch with data type Long64 " << variable << endl; 
+        tree->SetBranchAddress(variable.c_str(),value_i);
+    }
+    else if (typeName=="Float_t"){
         cout << "Setting Branch with data type float " << variable << endl; 
         tree->SetBranchAddress(variable.c_str(),value_f);
     }
@@ -239,7 +243,7 @@ string setBranchAddress(TTree* tree, string variable, float* value_f, double* va
         cout << "Setting Branch with data type double " << variable << endl; 
         tree->SetBranchAddress(variable.c_str(),value);
     }
-    else { cout << "Branch " << variable << " has unlisted datatype! exiting" << endl; exit(0); }
+    else { cout << "Branch " << variable << " has unlisted datatype: " << typeName << ". exiting" << endl; exit(0); }
    return typeName; 
 }
 

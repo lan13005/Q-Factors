@@ -20,6 +20,7 @@ void mergeQresults(){
         cout << "Loaded the Q-factor results file with nentries = " << qResultsTree->GetEntries() << endl;
 
 	float qvalue;
+	int fitStatus;
 	float conjugate_qvalue;
 	float bestNLL;
 	float worstNLL;
@@ -30,6 +31,7 @@ void mergeQresults(){
         int neighbors[kDim];
 
 	qResultsTree->SetBranchAddress("qvalue",&qvalue);
+	qResultsTree->SetBranchAddress("fitStatus",&fitStatus);
 	qResultsTree->SetBranchAddress("bestNLL",&bestNLL);
 	qResultsTree->SetBranchAddress("worstNLL",&worstNLL);
         qResultsTree->SetBranchAddress("worst_qvalue",&worst_qvalue);
@@ -62,6 +64,7 @@ void mergeQresults(){
 	cout << "Cloned input to output file" << postQFileName << endl;
 
 	TBranch* b_qvalue = outputTree->Branch("qvalue",&qvalue,"qvalue/F");
+	TBranch* b_fitStatus = outputTree->Branch("fitStatus",&fitStatus,"fitStatus/I");
 	TBranch* b_NLLBest = outputTree->Branch("NLLBest",&bestNLL,"qvalue_NLLBest/F");
 	TBranch* b_NLLWorst = outputTree->Branch("NLLWorst",&worstNLL,"qvalue_NLLWorst/F");
 	TBranch* b_worst_qvalue = outputTree->Branch("worst_qvalue",&worst_qvalue,"worst_qvalue/F");
@@ -77,6 +80,7 @@ void mergeQresults(){
 	{
             qResultsTree->GetEntry(ientry);
 	    b_qvalue->Fill();
+	    b_fitStatus->Fill();
 	    b_NLLBest->Fill();
 	    b_NLLWorst->Fill();
 	    b_worst_qvalue->Fill();

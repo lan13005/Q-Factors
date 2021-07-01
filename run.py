@@ -20,7 +20,7 @@ start_time = time.time()
 # nentries: how many combos we want to run over. Set to -1 to run over all. This should be much significantly larger than kDim or we might get errors .
 # numberEventsToSavePerProcess: how many event level fit histograms (root files) we want to save. -1 = Save all histograms
 ## --- ADVANCED ----
-# standardizationType: {range,std} what type of standardization to apply when normalizing the phase space variables 
+# standardizationType: {range,std} what type of standardization to apply when normalizing the phase space variables. Do nothing if any other string 
 # redistributeBkgSigFits: should we do the 3 different fits where there is 100% bkg, 50/50, 100% signal initilizations. 
 # nRndRepSubset: size of the random subset of potential neighbors. If <=0 or > nentries then we will not consider random subsets
 # doKRandomNeighbors: should we use k random neighbors as a test instead of doing k nearest neighbors?
@@ -38,21 +38,27 @@ start_time = time.time()
 
 # -------- STANDARD ---------
 rootFileLocs=[
-#        ("degALL_a2nonres_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_treeFlat_DSelector.root",
-#            "degALL_a2nonres_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "all")
-#        ("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol000_090.root",
-#            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "000_090")
-        ("degALL_a0a2_trees_UTweights.root",
-            "degALL_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "all")
-        #(rootFileBase+"allMC_trees.root", degALL_acc_mEllipse_tree_flat, "all")
+#        ("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol000.root",
+#            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "000")
+#        ,("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol045.root",
+#            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "045")
+#        ,("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol090.root",
+#            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "090")
+#        ,("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol135.root",
+#            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "135")
+#        ,("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_polAMO.root",
+#            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "AMO")
+        ("degALL_flatEtapi_b1_trees_subset_shap.root",
+            "tree", "flatEtapi")
         ]
+
 _SET_accWeight="AccWeight" 
 _SET_sbWeight="weightBS" 
-_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi"#phi_X_lab" 
+_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3"#phi_X_lab" 
 _SET_discrimVars="Mpi0;Meta" 
-_SET_nProcess=5
-_SET_kDim=300
-_SET_nentries=500
+_SET_nProcess=48
+_SET_kDim=1000
+_SET_nentries=-1
 _SET_numberEventsToSavePerProcess=0
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 
@@ -63,8 +69,8 @@ _SET_nBS=0
 _SET_runTag="" 
 _SET_seedShift=1341 
 _SET_saveBShistsAlso=0 
-_SET_alwaysSaveTheseEvents=""#90972;51623;57740" 
-_SET_saveBranchOfNeighbors=0 
+_SET_alwaysSaveTheseEvents=""
+_SET_saveBranchOfNeighbors=1
 _SET_saveMemUsage=1 
 _SET_saveEventLevelProcessSpeed=1 
 _SET_emailWhenFinished="" 
@@ -298,10 +304,9 @@ def runMakeGraphs(_SET_fileTag,_SET_emailWhenFinished):
     # ------------------------------------
     # run the makeDiagnosticHists program
     # ------------------------------------
-    cmd="root -l -b -q makePlots.C"
+    cmd='root -l -b -q "makePlots.C(false)"'
     print("running cmd: "+cmd)
     subprocess.Popen(cmd,shell=True).wait()
-
 
 def combineAllGraphs():
     '''
@@ -322,7 +327,10 @@ def combineAllGraphs():
     os.system(haddHistCmd)
     os.system("rm -f diagnosticPlots/postQVal_flatTree.root")
     os.system(haddTreeCmd)
-    os.system("root -l -b -q makePlotsSummed.C")
+
+    cmd='root -l -b -q "makePlots.C(true)"'
+    print("running cmd: "+cmd)
+    subprocess.Popen(cmd,shell=True).wait()
 
 
 #############################################################################
