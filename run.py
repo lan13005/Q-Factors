@@ -55,11 +55,11 @@ rootFileLocs=[
 _SET_accWeight="AccWeight" 
 _SET_sbWeight="weightBS" 
 _SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3"#phi_X_lab" 
-_SET_discrimVars="Mpi0;Meta" 
-_SET_nProcess=48
-_SET_kDim=1000
+_SET_discrimVars="Meta"#;Meta" 
+_SET_nProcess=36
+_SET_kDim=800
 _SET_nentries=-1
-_SET_numberEventsToSavePerProcess=0
+_SET_numberEventsToSavePerProcess=2
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 
 _SET_redistributeBkgSigFits=0 
@@ -75,7 +75,7 @@ _SET_saveMemUsage=1
 _SET_saveEventLevelProcessSpeed=1 
 _SET_emailWhenFinished="" 
 _SET_runBatch=0 
-_SET_extraLibs=["./auxilliary/customPDFs/bivariateGaus/bivariateGaus_cxx.so"]
+_SET_extraLibs=[]#"./auxilliary/customPDFs/bivariateGaus/bivariateGaus_cxx.so"]
 
 #############################################################################
 ###################  DEALING WITH CMDLINE ARGS   #########################

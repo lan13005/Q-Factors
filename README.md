@@ -10,4 +10,14 @@ An implementation of this technique is developed to calculat Q-factors in the re
 4. Calculate Q-factor as the signal fraction
 5. Do this for all entries
 
+
+Example usage:
+1. Clone repository
+2. Update run.py to match your data. Most important variables are under STANDARD comment
+3. Copy one of the config files in auxilliary/pdfTemplates/ if you are looking for an example of 1D or 2D pdf fits
+4. Finally type: run.py 11
+    - This will run the program to do the fitting (first digit) and plotting (second digit)
+    - If plotting you also need to update histsToMake variable in makePlots.C to draw w.e. variable you want
+
+
 See documentation for more details

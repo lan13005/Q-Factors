@@ -24,11 +24,10 @@ void QFactorAnalysis::initialize(string rootFileLoc, string rootTreeName){
             phaseSpaceVars.push_back(emptyVec);
             phaseSpaceVars[iVar].reserve(nentries);
         }
-	for (int iVar=0; iVar<2; ++iVar){
+	for (int iVar=0; iVar<discrimVarDim; ++iVar){
             // discrimVars will always have dimension 2 (at most 2D fits can be done). We can reserve and fill 1 or 2 dimensions
             discrimVars.push_back(emptyVec);
-            if (iVar<(discrimVarDim-1)) 
-                discrimVars[iVar].reserve(nentries);
+            discrimVars[iVar].reserve(nentries);
         }
 	accWeights.reserve(nentries);
 	// will hold all the ids of the unique combos
@@ -292,6 +291,10 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 	float distance;
         distSort_kNN distKNN(kDim);
         pair<float,int> newPair;
+        
+        // Track current discriminating variable values
+        float currentValues[discrimVarDim];
+        float neighborValues[discrimVarDim];
 
 	// opening a file to write my log data to
     	ofstream logFile;
@@ -338,7 +341,6 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
         // START FIT MANAGER
         string sThread = to_string(iProcess);
         fitManager fm(sThread);
-
         // ---------------------------
 
         // IF WE WANT TO BOOTSTRAP WE NEED TO SAVE THE DATA
@@ -382,6 +384,10 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                 int nPotentialNeighbors=(int)phasePoint2PotentialNeighbor.size();
                 vector<int> phasePoint2PotentailNeighbor_BS;
                 phasePoint2PotentailNeighbor_BS.reserve(nPotentialNeighbors);
+
+                // Grab current discriminating variable values
+                for ( int iVar=0; iVar<discrimVarDim; ++iVar)
+                    currentValues[iVar] = discrimVars[iVar][ientry];
 
                 // --------------------------------------------
                 // Random generator for resampling of the input data, in this case the input data will be the set of potential neighbors for phasePoint2.
@@ -457,7 +463,10 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 		        distKNN.kNN.pop();
                         weight=accWeights[newPair.second];
 
-                        bool keptNeighbor=fm.insert(discrimVars[0][newPair.second],discrimVars[1][newPair.second],weight);
+                        for ( int iVar=0; iVar<discrimVarDim; ++iVar)
+                            neighborValues[iVar] = discrimVars[iVar][newPair.second];
+                        bool keptNeighbor=fm.insert(neighborValues,weight);
+
                         if (keptNeighbor && saveBranchOfNeighbors){
                             neighbors[++iNeighbor]=newPair.second;
                         }
@@ -511,7 +520,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 		        if(saveEventLevelProcessSpeed){logFile <<	"\tCompleted Fit: +" << duration << "ms" << endl;}
                         
                         // setting parameters for bkg/sig and extracting q-value
-                        qvalue = fm.calculate_q(discrimVars[0][ientry],discrimVars[1][ientry]);
+                        qvalue = fm.calculate_q(currentValues);
                         
                         if ( isnan(qvalue) ){
                             params=fm.getParameters();
@@ -617,8 +626,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                             /////////////////////////////////////////////////////////////////////////
                             /////////////////////////////////////////////////////////////////////////
 
-
-                            fm.drawFitPlots(discrimVars[0][ientry],discrimVars[1][ientry], ientry, dHist_qvaluesBS, 
+                            fm.drawFitPlots(currentValues, ientry, dHist_qvaluesBS, 
                                             best_qvalue, iBS, allCanvases, qHistsFile);
                             
         	            if(saveEventLevelProcessSpeed){
