@@ -18,6 +18,7 @@ Example usage:
 4. Finally type: run.py 11
     - This will run the program to do the fitting (first digit) and plotting (second digit)
     - If plotting you also need to update histsToMake variable in makePlots.C to draw w.e. variable you want
+
 Extra...
 5. convertROOTtoPNG.C will aggregate the ROOT files in the histograms folder into a single pdf file
 6. flat_to_amptools.C can be used to convert the flat tree outputs of the Q-factor program into amptools format. Not made general yet
