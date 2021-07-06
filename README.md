@@ -14,10 +14,13 @@ An implementation of this technique is developed to calculat Q-factors in the re
 Example usage:
 1. Clone repository
 2. Update run.py to match your data. Most important variables are under STANDARD comment
-3. Copy one of the config files in auxilliary/pdfTemplates/ if you are looking for an example of 1D or 2D pdf fits
+3. Copy one of the config files in auxilliary/pdfTemplates/ if you are looking for an example of 1D or 2D pdf fits and replace configPDFs.h with it
 4. Finally type: run.py 11
     - This will run the program to do the fitting (first digit) and plotting (second digit)
     - If plotting you also need to update histsToMake variable in makePlots.C to draw w.e. variable you want
+Extra...
+5. convertROOTtoPNG.C will aggregate the ROOT files in the histograms folder into a single pdf file
+6. flat_to_amptools.C can be used to convert the flat tree outputs of the Q-factor program into amptools format. Not made general yet
 
 
 See documentation for more details
