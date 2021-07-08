@@ -3,7 +3,8 @@
 // To make the cxx and h files for the custom pdf.
 root -l -b -q makeBivariateGaus.C
 
-Do these two commands and you will get a so file and a dictionary. The so file can be linked when compiling main
+Do these two commands and you will get a .so file and a dictionary. The .so file can be linked when compiling main. That can be done by
+  setting the variable _SET_extraLibs to the location of the .so file.
 root -l
 .x bivariateGaus.cxx+
 

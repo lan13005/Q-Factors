@@ -37,10 +37,19 @@ class fitManager
 {
     //////////////////////////////////////////////////////////////////////
     // 1. Need to define the values to initialize the fits with and the RooFit variables/PDFs
+    //          - You might need to #include some header files that contains the PDFs you want. i.e. if you want to use RooVoigian then add
+    //            #include <RooVoigian.h> at the top.
     // 2. Need to define a way to reinitialize the PDFs
     // 3. Need to define a way to calculate the q-factor
     // 4. Need to define how you want to insert the data into the dataset
     // 5. (DEFAULTS PROBABLY FINE) Need to define how you want to fit the PDFs to the dataset
+    // ----------------------     EXTRA     ----------------------------
+    // HOW TO MAKE YOUR OWN CUSTOM PDFs : MUCH FASTER THAN ROOGENERICPDF
+    //    THERE IS A README FOR AN EXAMPLE BIVARIATE GAUSSIAN CUSTOM PDF AT auxilliary/customPDFs/bivariateGaus/README 
+    // 1. Use RooClassFactory to create a custom PDF class. Should create a .so file
+    // 2. Include the header file here
+    // 3. include something like -pathToSoFile when you compile the main program
+    // -----------------------------------------------------------------
     //////////////////////////////////////////////////////////////////////
     public:
         // DEFINE VALUES TO INITIALIZE ROOFIT VARIABLES WITH
@@ -162,12 +171,6 @@ class fitManager
             nsig = new RooRealVar{("nsig"+iProcess).c_str(),"nsig",(float)kDim/2,0,(float)kDim};
             nbkg = new RooRealVar{("nbkg"+iProcess).c_str(),"nbkg",(float)kDim/2,0,(float)kDim};
             /////////////// CREATING FINAL PDFS
-            // -----------------------------------------------------------------
-            // HOW TO MAKE YOUR OWN CUSTOM PDFs : MUCH FASTER THAN ROOGENERICPDF
-            // 1. Use RooClassFactory to create custom PDF class. Should create a .so file
-            // 2. Include the header file here
-            // 3. include something like -pathToSoFile when you compile the main program
-            // -----------------------------------------------------------------
             //rooSig = new RooProdPdf{("rooSig"+iProcess).c_str(), "rooSig", RooArgSet(*rooGausPi0,*rooGausEta)};
             //rooSig = new RooGenericPdf(("rooSig"+iProcess).c_str(), "Bivariate Gaussian", expression.c_str(),
             //    RooArgList(*x, *y, *rho, *px, *sx, *py, *sy) );

@@ -36,10 +36,19 @@ class fitManager
 {
     //////////////////////////////////////////////////////////////////////
     // 1. Need to define the values to initialize the fits with and the RooFit variables/PDFs
+    //          - You might need to #include some header files that contains the PDFs you want. i.e. if you want to use RooVoigian then add
+    //            #include <RooVoigian.h> at the top.
     // 2. Need to define a way to reinitialize the PDFs
     // 3. Need to define a way to calculate the q-factor
     // 4. Need to define how you want to insert the data into the dataset
     // 5. (DEFAULTS PROBABLY FINE) Need to define how you want to fit the PDFs to the dataset
+    // ----------------------     EXTRA     ----------------------------
+    // HOW TO MAKE YOUR OWN CUSTOM PDFs : MUCH FASTER THAN ROOGENERICPDF
+    //    THERE IS A README FOR AN EXAMPLE BIVARIATE GAUSSIAN CUSTOM PDF AT auxilliary/customPDFs/bivariateGaus/README 
+    // 1. Use RooClassFactory to create a custom PDF class. Should create a .so file
+    // 2. Include the header file here
+    // 3. include something like -pathToSoFile when you compile the main program
+    // -----------------------------------------------------------------
     //////////////////////////////////////////////////////////////////////
     public:
         // DEFINE VALUES TO INITIALIZE ROOFIT VARIABLES WITH
@@ -64,7 +73,6 @@ class fitManager
         ////////////////////////
         RooRealVar* px;
         RooRealVar* sx;
-        RooRealVar* rho;
         RooGaussian* rooSig;
         ////////////////////////
         // DEFINE THE BKG PDF
@@ -163,7 +171,7 @@ class fitManager
 
         float fit(){
             // Looked in multiple places and Moneta always says you cant use Minos with weighted data but should just use SumW2Errors. If I dont
-            //   use Minos then nsig+nbkg doesnt even sum to the orignal entries...
+            //   use Minos then nsig+nbkg doesnt even sum to the original entries...
             //   lets not use minos for now since it significantly speeds things up. Bootstrapping might help alleviate this problem
             //   https://root-forum.cern.ch/t/parameter-uncertainties-by-rooabspdf-fitto-for-weighted-data-depend-on-minos-option-if-sumw2error-is-set-too/39599/4
             // SumW2Error - errors calculated from the inverse hessian does not give good coverage for weighted data. Setting to false is better for weighted I think? 

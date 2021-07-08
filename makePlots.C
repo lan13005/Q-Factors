@@ -1,8 +1,12 @@
-// This program loads data from postQ root file and draws a bunch of histograms
+// This program loads data from the postQ root file and draws a bunch of histograms
 #include "makePlots.h"
 #include "configSettings.h"
 #include "./auxilliary/helperFuncs.h"
 
+//////////////////////
+//////   INPUT  //////
+//////////////////////
+//Enter the branches to be plotted into this vector. For 2D histograms, separate the x and y variable by a semicolon
 vector<string> histsToMake={
     "Meta",
     "Mpi0",
@@ -270,7 +274,8 @@ void makePlots(bool makeTotal){
 		qvalue = qvalues[ientry];
                 accWeight=accWeights[ientry];
                 sbWeight=sbWeights[ientry];
-                is_truecombo=is_truecombos[ientry];
+                if (br)
+                    is_truecombo=is_truecombos[ientry];
                 baseWeight=accWeight;
 
                 if (isnan(qvalue)){
@@ -286,7 +291,7 @@ void makePlots(bool makeTotal){
 		bkgWeight = totWeight-sigWeight;
 
                 //////////////////////////////
-                // Multply sideband and accidental weights if requested 
+                // Multiply sideband and accidental weights if requested 
                 //////////////////////////////
                 sigWeight_sb = baseWeight*sbWeight;
                 bkgWeight_sb = totWeight-sigWeight_sb;

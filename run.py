@@ -9,19 +9,20 @@ start_time = time.time()
 #############################################################################
 ###################  DEFINING ENVIRONMENT VARIABLES #########################
 #############################################################################
+### NOTE: The code calculates the q-factor for all events in the branch, make sure you feed only those events of interest
 ## --- STANDARD ----
-# rooFileLocs: What file we will analyze and what tree to look for. Also need a tag to save the data to so that we dont overwrite other runs
-# accWeight: the branch to look at to get the accidental subtraction weights. empty string to not use accidental weights
-# sbWeight: the branch to look at to get the sideband subtraction weights. Wont be used in q-factors calculation, used only as final comparison
-# varStringBase: semicolon separated branch names to get phase space variables for distance calcuation
+# rootFileLocs: Root file to be analyzed, followed by the name of the tree and a name tag to avoid overwriting runs
+# accWeight: Name of branch with the accidental subtraction weight. empty string to not use accidental weights
+# sbWeight: Name of branch with the sideband subtraction weight. Will only be used for comparison purposes. empty string to not use accidental weights
+# varStringBase: semicolon separated branch names to get phase space variables for distance calculation
 # discrimVars: semicolon separated branch names to get discriminating/reference variables
-# nProcess: how many processes to spawn
-# kDim: number of neighbors
-# nentries: how many combos we want to run over. Set to -1 to run over all. This should be much significantly larger than kDim or we might get errors .
+# nProcess: Number of processes to spawn
+# kDim: Number of neighbors
+# nentries: Number of combos to run over. Set to -1 to run over all. This should be significantly larger than kDim or we might get errors.
 # numberEventsToSavePerProcess: how many event level fit histograms (root files) we want to save. -1 = Save all histograms
 ## --- ADVANCED ----
 # standardizationType: {range,std} what type of standardization to apply when normalizing the phase space variables. Do nothing if any other string 
-# redistributeBkgSigFits: should we do the 3 different fits where there is 100% bkg, 50/50, 100% signal initilizations. 
+# redistributeBkgSigFits: {1,0} should we do the 3 different fits where there is 100% bkg, 50/50, 100% signal initialization. 1 to do all 3 and 0 to do only 50/50 
 # nRndRepSubset: size of the random subset of potential neighbors. If <=0 or > nentries then we will not consider random subsets
 # doKRandomNeighbors: should we use k random neighbors as a test instead of doing k nearest neighbors?
 # nBS: number of times we should bootstrap the set of neighbors to calculate q-factors with. Used to extract an error on the q-factors. 0 = no bootstrapping
@@ -85,8 +86,8 @@ def showHelp():
     print("\n-help\n")
     print("run.py accepts only one argument. A 2 digit binary code is needed:")
     print("1. 0/1 given to run the q factor analysis")
-    print("2. 0/1 given to make all the diagnostic histograms appliyng the q-factors")
-    print("i.e. if we want to run the q-factor analysis but do not make the graphs then 10 is the argument")
+    print("2. 0/1 given to make all the diagnostic histograms applyng the q-factors")
+    print("i.e. if we want to run the q-factor analysis without make the graphs then use 10 as the argument")
 
 
 def parseCmdArgs():
@@ -155,6 +156,7 @@ def reconfigureSettings(fileName, _SET_rootFileLoc, _SET_rootTreeName, _SET_file
     spawnProcessChangeSetting("s_discrimVar",_SET_discrimVars,fileName,True)
     spawnProcessChangeSetting("s_phaseVar",_SET_varStringBase,fileName,True)
     spawnProcessChangeSetting("s_accWeight",_SET_accWeight,fileName,True)
+    spawnProcessChangeSetting("s_sbWeight",_SET_sbWeight,fileName,True)
     spawnProcessChangeSetting("standardizationType",_SET_standardizationType,fileName,True)
     spawnProcessChangeSetting("alwaysSaveTheseEvents",_SET_alwaysSaveTheseEvents,fileName,True)
 
@@ -180,10 +182,10 @@ def reconfigureSettings(fileName, _SET_rootFileLoc, _SET_rootTreeName, _SET_file
 
 def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
     '''
-    This is the main driver section that runs runs the "main" program with appropriate settings. 
+    This is the main driver section that runs the "main" program with appropriate settings. 
     Here we can accept a combo flag that selects the combination of varString variables to use. This
     is useful if you are trying to do a scan over all possible combinations of phase space variables
-    of all set sizes. You should probably set a nentries or else you will wait a long time....
+    of all set sizes. You should probably set nentries to be smaller or else you will have to wait a long time....
     '''
     # clean up the outputs of the "main" program
     print("Cleaning folders that are used by main")
@@ -278,7 +280,7 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
 def mergeResults():
     '''
     After running the multi process q-factors there will be a bunch of resultsX.root files
-    We will hadd them all together and then merge the final result file with the input tree
+    We will use the program "hadd" to add all the resulting root files together and then merge the final result file with the input tree
     so we can have a tree that has everything in it
     '''
     print("\n\n")
@@ -353,7 +355,7 @@ for _SET_rootFileLoc, _SET_rootTreeName, _SET_fileTag in rootFileLocs:
         print("Sending program finished email")
         subprocess.Popen("sendmail "+_SET_emailWhenFinished+" < defaultEmail.txt",shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
 
-# Once all the datasets have been run over we can combine all the results. This does suppose the datasets should be combined...
+# Once all the datasets have been run over we can combine all the results. This assumes the datasets should be combined...
 if _SET_runMakeHists:
     combineAllGraphs()
     

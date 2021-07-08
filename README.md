@@ -5,6 +5,7 @@ Sideband subtraction is a common technique used in particle physics to separate 
 
 An implementation of this technique is developed to calculat Q-factors in the reaction <img src="https://render.githubusercontent.com/render/math?math=\gamma p\rightarrow\pi^0\eta p \rightarrow 4\gamma p"> at GlueX. Q-factors is an event-by-event multivariate sideband subtraction technique. The only requirement is the knowledge of the signal and background distribution of some discriminating variable. 
 1. First the nearest neighbors, under some set of phase space variables, is found for a given event
+    - All entries in the tree will be potential neighbors. Make sure to feed only the events in the region of interest ( i.e. determined by your PDF fit range)
 2. Distribution of the discriminating variable is filled with the nearest neighbors
 3. Fit the above distribution with the known/assumed signal and bkg distribution
 4. Calculate Q-factor as the signal fraction
@@ -14,7 +15,8 @@ An implementation of this technique is developed to calculat Q-factors in the re
 Example usage:
 1. Clone repository
 2. Update run.py to match your data. Most important variables are under STANDARD comment
-3. Copy one of the config files in auxilliary/pdfTemplates/ if you are looking for an example of 1D or 2D pdf fits and replace configPDFs.h with it
+3. Copy one of the config files in auxilliary/pdfTemplates/ if you are looking for an example of 1D or 2D pdf fits and replace configPDFs.h with it.
+    - You have to update the template to match your reaction
 4. Finally type: run.py 11
     - This will run the program to do the fitting (first digit) and plotting (second digit)
     - If plotting you also need to update histsToMake variable in makePlots.C to draw w.e. variable you want
