@@ -8,16 +8,17 @@
 //////////////////////
 //Enter the branches to be plotted into this vector. For 2D histograms, separate the x and y variable by a semicolon
 vector<string> histsToMake={
-    "Meta",
-    "Mpi0",
-    "Mpi0g3",
-    "Mpi0g4",
-    "Mpi0eta",
-    "cosTheta_X_cm",
-    "cosTheta_eta_gj",
-    "phi_eta_gj",
-    "Mpi0;Meta",
-    "Mpi0eta;cosTheta_eta_gj"
+    "qvalue"
+//    "Meta",
+//    "Mpi0",
+//    "Mpi0g3",
+//    "Mpi0g4",
+//    "Mpi0eta",
+//    "cosTheta_X_cm",
+//    "cosTheta_eta_gj",
+//    "phi_eta_gj",
+//    "Mpi0;Meta",
+//    "Mpi0eta;cosTheta_eta_gj"
 };
 
 void makePlots(bool makeTotal){
@@ -137,8 +138,8 @@ void makePlots(bool makeTotal){
         vector<double> value(branchesToGet.size(),0);
         vector<float> value_f(branchesToGet.size(),0);
         vector<Long64_t> value_l(branchesToGet.size(),0);
-        vector<float> minValue(branchesToGet.size(),DBL_MAX);
-        vector<float> maxValue(branchesToGet.size(),DBL_MIN);
+        vector<float> minValue(branchesToGet.size(),FLT_MAX);
+        vector<float> maxValue(branchesToGet.size(),FLT_MIN);
         vector<vector<float>> values;
         map<string,int> nameToIdx;
         int i=0;
@@ -170,9 +171,16 @@ void makePlots(bool makeTotal){
                 if (sbWeightType=="Long64_t")
 		    sbWeights.push_back(sbWeight_l);
 
+                auto it = find(branchesToGet.begin(), branchesToGet.end(), "qvalue");
+                if (it != branchesToGet.end()){
+                    int index=distance(branchesToGet.begin(),it); // index of the q-factors array
+		    qvalues.push_back(value_f[index]); // qvalues is defined to be a float from the q-factors program
+                }
+
                 if (br)
                     is_truecombos.push_back(is_truecombo);
-		qvalues.push_back(qvalue);
+
+
 		bestNLLs.push_back(bestNLL);
 		worstNLLs.push_back(worstNLL);
                 worst_qvalues.push_back(worst_qvalue);
