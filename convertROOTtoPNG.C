@@ -1,4 +1,4 @@
-gROOT->SetBatch(kTRUE);
+//gROOT->SetBatch(kTRUE);
 
 void subdetector_convertROOTtoPNG(string inDir){
 	cout << "Looking in directory: " << inDir << endl;

@@ -8,17 +8,16 @@
 //////////////////////
 //Enter the branches to be plotted into this vector. For 2D histograms, separate the x and y variable by a semicolon
 vector<string> histsToMake={
-    "qvalue"
-//    "Meta",
-//    "Mpi0",
-//    "Mpi0g3",
-//    "Mpi0g4",
-//    "Mpi0eta",
-//    "cosTheta_X_cm",
-//    "cosTheta_eta_gj",
-//    "phi_eta_gj",
-//    "Mpi0;Meta",
-//    "Mpi0eta;cosTheta_eta_gj"
+    "Meta",
+    "Mpi0",
+    "Mpi0g3",
+    "Mpi0g4",
+    "Mpi0eta",
+    "cosTheta_X_cm",
+    "cosTheta_eta_gj",
+    "phi_eta_gj",
+    "Mpi0;Meta",
+    "Mpi0eta;cosTheta_eta_gj"
 };
 
 void makePlots(bool makeTotal){
@@ -115,7 +114,7 @@ void makePlots(bool makeTotal){
         // we dont want to load the branch name multiple times (i.e. if there are repeated names in histsToMake)
         // so we can insert them into a set while parsing the inputs to get information on what variables to plot and dimensionality (i.e. TH1 or TH2)
         cout << "DETERMINING WHICH VARIABLES TO PLOT AND DIMENSIONALITY OF HISTOGRAMS" << endl;
-        set<string> branchesToGet={};
+        vector<string> branchesToGet={};
         vector<vector<string>> varsToPlot;
         for (auto s: histsToMake){
             size_t pos = 0;
@@ -124,15 +123,19 @@ void makePlots(bool makeTotal){
             vector<string> tmp;
             while ((pos = s.find(delim)) != std::string::npos) {
                 token = s.substr(0, pos);
-                branchesToGet.insert(token);
+                if (std::find(branchesToGet.begin(), branchesToGet.end(), token) == branchesToGet.end()) 
+                    branchesToGet.push_back(token);
                 tmp.push_back(token);
                 s.erase(0, pos + delim.length());
             }
             tmp.push_back(s);
             varsToPlot.push_back(tmp);
-            branchesToGet.insert(s);
+            if (std::find(branchesToGet.begin(), branchesToGet.end(), s) == branchesToGet.end()) 
+                branchesToGet.push_back(s);
         }
         cout << "LOADING THE BRANCHES TO PLOT: "<< endl;
+        for ( auto ele : branchesToGet)
+            cout << ele << endl;
         string typeName;
         vector<string> typeNames;
         vector<double> value(branchesToGet.size(),0);
@@ -171,10 +174,14 @@ void makePlots(bool makeTotal){
                 if (sbWeightType=="Long64_t")
 		    sbWeights.push_back(sbWeight_l);
 
-                auto it = find(branchesToGet.begin(), branchesToGet.end(), "qvalue");
-                if (it != branchesToGet.end()){
+                auto it = std::find(branchesToGet.begin(), branchesToGet.end(), "qvalue");
+                if ( it  != branchesToGet.end() ){
+                    //cout << "qvalue branch found in branchesToGet (set of variables used to make the requested histograms)" << endl;
                     int index=distance(branchesToGet.begin(),it); // index of the q-factors array
 		    qvalues.push_back(value_f[index]); // qvalues is defined to be a float from the q-factors program
+                }
+                else{
+                    qvalues.push_back(qvalue);
                 }
 
                 if (br)

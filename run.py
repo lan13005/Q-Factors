@@ -58,7 +58,7 @@ _SET_sbWeight="weightBS"
 _SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3"#phi_X_lab" 
 _SET_discrimVars="Meta"#;Meta" 
 _SET_nProcess=36
-_SET_kDim=800
+_SET_kDim=400
 _SET_nentries=-1
 _SET_numberEventsToSavePerProcess=2
 # -------- ADVANCED ---------
