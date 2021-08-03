@@ -50,6 +50,7 @@ void makeStackedHist(TH1F* truth, TH1F* tot, TH1F* sig, TH1F* bkg, TH1F* sig_sb,
 	stackedHists->Add(bkg,"HIST");
 	stackedHists->Add(sig,"HIST");
 	stackedHists->Draw("nostack");
+        stackedHists->SetMaximum(round(1.05*tot->GetMaximum()));
 	leg1->Draw();
 	stackedHists->GetXaxis()->SetTitle(tot->GetXaxis()->GetTitle());
 	stackedHists->GetYaxis()->SetTitle(tot->GetYaxis()->GetTitle());
@@ -59,6 +60,7 @@ void makeStackedHist(TH1F* truth, TH1F* tot, TH1F* sig, TH1F* bkg, TH1F* sig_sb,
 	stackedHists_sb->Add(bkg_sb,"HIST");
 	stackedHists_sb->Add(sig_sb,"HIST");
 	stackedHists_sb->Draw("nostack");
+        stackedHists_sb->SetMaximum(round(1.05*tot->GetMaximum()));
 	leg1_sb->Draw();
 	stackedHists_sb->GetXaxis()->SetTitle(tot->GetXaxis()->GetTitle());
 	stackedHists_sb->GetYaxis()->SetTitle(tot->GetYaxis()->GetTitle());
@@ -69,6 +71,7 @@ void makeStackedHist(TH1F* truth, TH1F* tot, TH1F* sig, TH1F* bkg, TH1F* sig_sb,
         stackedHists_overlay->Add(sig,"HIST");
         stackedHists_overlay->Add(sig_sb,"HIST");
 	stackedHists_overlay->Draw("nostack");
+        stackedHists_overlay->SetMaximum(round(1.05*sig->GetMaximum()));
 	stackedHists_overlay->GetXaxis()->SetTitle(tot->GetXaxis()->GetTitle());
 	stackedHists_overlay->GetYaxis()->SetTitle(tot->GetYaxis()->GetTitle());
         leg1_overlay->Draw();

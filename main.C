@@ -85,7 +85,7 @@ void QFactorAnalysis::loadData(){
             typeName=setBranchAddress(dataTree, parseDiscrimVars.varStringSet[iVar], &discrimVar_l[iVar], &discrimVar_f[iVar], &discrimVar[iVar]);
             discrimVarDataTypes[iVar]=typeName;
         }
-
+        
         //////////////////////////////////////////////////////////
         // SET UP WEIGHTS
         //////////////////////////////////////////////////////////
@@ -151,6 +151,7 @@ void QFactorAnalysis::loadData(){
 
         if (saveMemUsage)
             outputMemUsage(pinfo,"After standardization: ");
+        
 
         dataFile->Close(); // dataTree is owned by dataFile. So it will automatically free memory
         gSystem->GetProcInfo(&pinfo);

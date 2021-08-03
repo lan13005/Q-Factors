@@ -96,7 +96,7 @@ class fitManager
             rooData = new RooDataSet{("rooData"+iProcess).c_str(),"rooData",RooArgSet(*x,*w),RooFit::WeightVar(*w)};
             /////////////// FOR SIGNAL PDF
             px = new RooRealVar{("px"+iProcess).c_str(),"px",initMassX};//, initMassX*0.9, initMassX*1.1};//initMassX};
-            sx = new RooRealVar{("sx"+iProcess).c_str(),"sx",initSigmaX*1.1,initSigmaX,initSigmaX*2};
+            sx = new RooRealVar{("sx"+iProcess).c_str(),"sx",initSigmaX*1.1,initSigmaX*0.5,initSigmaX*2};
             rooSig = new RooGaussian{("rooGausEta_"+iProcess).c_str(), "rooGausEta", *x, *px, *sx};
             /////////////// FOR BKG PDF
             bern_parA = new RooRealVar{("bern_parA"+iProcess).c_str(),"bern_parA",initBernA,0,1};

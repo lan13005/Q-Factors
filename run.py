@@ -63,7 +63,7 @@ _SET_nentries=-1
 _SET_numberEventsToSavePerProcess=2
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 
-_SET_redistributeBkgSigFits=0 
+_SET_redistributeBkgSigFits=1 
 _SET_nRndRepSubset=0 
 _SET_doKRandomNeighbors=0
 _SET_nBS=0 
