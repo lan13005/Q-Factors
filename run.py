@@ -54,8 +54,8 @@ rootFileLocs=[
         ]
 
 _SET_accWeight="AccWeight" 
-_SET_sbWeight="weightBS" 
-_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3"#phi_X_lab" 
+_SET_sbWeight="weightBSeta" 
+_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;mcprocess";#Mpi0eta;Mpi0g3"#phi_X_lab" 
 _SET_discrimVars="Meta"#;Meta" 
 _SET_nProcess=36
 _SET_kDim=400
@@ -63,7 +63,7 @@ _SET_nentries=-1
 _SET_numberEventsToSavePerProcess=2
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 
-_SET_redistributeBkgSigFits=1 
+_SET_redistributeBkgSigFits=0 
 _SET_nRndRepSubset=0 
 _SET_doKRandomNeighbors=0
 _SET_nBS=0 

@@ -242,8 +242,6 @@ void makePlots(bool makeTotal){
             if (varToPlot.size()==1){
                 float minVal = minValue[nameToIdx[varToPlot[0]]];
                 float maxVal = maxValue[nameToIdx[varToPlot[0]]];
-                minVal=0.1;
-                maxVal=3.0;
                 hists1D_truth.push_back(new TH1F((varToPlot[0]+"_truth").c_str(),("truth;"+varToPlot[0]).c_str(),75,minVal,maxVal));
                 hists1D_tot.push_back(new TH1F((varToPlot[0]+"_tot").c_str(),("tot;"+varToPlot[0]).c_str(),75,minVal,maxVal));
                 hists1D_sig.push_back(new TH1F((varToPlot[0]+"_sig").c_str(),("sig;"+varToPlot[0]).c_str(),75,minVal,maxVal));
