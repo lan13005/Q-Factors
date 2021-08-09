@@ -35,12 +35,13 @@ start_time = time.time()
 # saveEventLevelProcessSpeed:  include info on process speed into processLogX.log files
 # emailWhenFinished: we can send an email when the code is finished, no email sent if empty string
 # runBatch: Not ready - (default=0) 0=run on a single computer, 1=submit to condor for batch processing
+# _SET_runAllPhaseCombos: (bool) whether we should run over all possible subsets of the phase space. Number fits = Sum_i (n choose i); i=1 to n+1; n=size of varStringBase
 # extraLibs: Include extra libraries to compile main with. Intended for loading custom PDFs
 
 # -------- STANDARD ---------
 rootFileLocs=[
-#        ("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol000.root",
-#            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "000")
+#        ("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol000_090.root",
+#            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "000_090")
 #        ,("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol045.root",
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "045")
 #        ,("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_pol090.root",
@@ -49,13 +50,18 @@ rootFileLocs=[
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "135")
 #        ,("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_polAMO.root",
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "AMO")
-        ("degALL_flatEtapi_b1_trees_subset_shap.root",
-            "tree", "flatEtapi")
+#        ("degALL_flatEtapi_b1_trees_subset_shap.root",
+#            "tree", "flatEtapi")
+        ("degALL_data_2017_mEllipse_8288_chi13_tLT1_pipicut_omegacut_treeFlat_DSelector.root", 
+            "degALL_data_2017_mEllipse_8288_chi13_tLT1_pipicut_omegacut_tree_flat", "2017")
         ]
 
 _SET_accWeight="AccWeight" 
 _SET_sbWeight="weightBSeta" 
-_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;mcprocess";#Mpi0eta;Mpi0g3"#phi_X_lab" 
+#_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
+#_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
+_SET_varStringBase="Mpi0eta;Mpi0g3" 
+#_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj"
 _SET_discrimVars="Meta"#;Meta" 
 _SET_nProcess=36
 _SET_kDim=400
@@ -76,6 +82,7 @@ _SET_saveMemUsage=1
 _SET_saveEventLevelProcessSpeed=1 
 _SET_emailWhenFinished="" 
 _SET_runBatch=0 
+_SET_runAllPhaseCombos=0
 _SET_extraLibs=[]#"./auxilliary/customPDFs/bivariateGaus/bivariateGaus_cxx.so"]
 
 #############################################################################
@@ -143,7 +150,7 @@ def spawnProcessChangeSetting(varName,varValue,fileName,isString):
         sedArgs=["sed","-i",'s@'+varName+'=.*;@'+varName+'='+str(varValue)+';@g',fileName]
     subprocess.Popen(sedArgs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait()
 
-def reconfigureSettings(fileName, _SET_rootFileLoc, _SET_rootTreeName, _SET_fileTag):
+def reconfigureSettings(fileName, combo, _SET_rootFileLoc, _SET_rootTreeName, _SET_fileTag):
     '''
     Settings we need to set in helpFuncs
     '''
@@ -154,11 +161,15 @@ def reconfigureSettings(fileName, _SET_rootFileLoc, _SET_rootTreeName, _SET_file
     spawnProcessChangeSetting("cwd",os.getcwd(),fileName,True)
     spawnProcessChangeSetting("standardizationType",_SET_standardizationType,fileName,True)
     spawnProcessChangeSetting("s_discrimVar",_SET_discrimVars,fileName,True)
-    spawnProcessChangeSetting("s_phaseVar",_SET_varStringBase,fileName,True)
     spawnProcessChangeSetting("s_accWeight",_SET_accWeight,fileName,True)
     spawnProcessChangeSetting("s_sbWeight",_SET_sbWeight,fileName,True)
     spawnProcessChangeSetting("standardizationType",_SET_standardizationType,fileName,True)
     spawnProcessChangeSetting("alwaysSaveTheseEvents",_SET_alwaysSaveTheseEvents,fileName,True)
+
+    # Need to update the phaseVar to match the phase space combination we are looking at
+    selectedVar = [varVec[ele] for ele in combo]
+    _SET_varString=";".join(selectedVar)
+    spawnProcessChangeSetting("s_phaseVar",_SET_varString,fileName,True)
 
     spawnProcessChangeSetting("nProcess",_SET_nProcess,fileName,False)
     spawnProcessChangeSetting("kDim",_SET_kDim,fileName,False)
@@ -193,18 +204,17 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
     os.system("rm -rf logs"+_SET_runTag+"/"+_SET_fileTag)
     os.system("rm -rf histograms"+_SET_runTag+"/"+_SET_fileTag)
     os.system("mkdir -p logs"+_SET_runTag+"/"+_SET_fileTag)
+    os.system("cp configSettings.h logs"+_SET_runTag+"/"+_SET_fileTag) 
+    os.system("cp configPDFs.h logs"+_SET_runTag+"/"+_SET_fileTag) 
     os.system("cp main.C logs"+_SET_runTag+"/main.C")
     os.system("cp run.py logs"+_SET_runTag+"/run.py")
     os.system("mkdir -p histograms"+_SET_runTag+"/"+_SET_fileTag)
 
 
     # We use this setup to make it easy to loop through all combinations for phase space variables to determine which set of variables are the best. 
-    tagVec=["0" for i in range(len(varVec))]
-    for ele in combo:
-        tagVec[ele]="1"
-    tag="".join(tagVec)
     selectedVar = [varVec[ele] for ele in combo]
     _SET_varString=";".join(selectedVar)
+    print("PHASE SPACE VARIABLES: {}".format(_SET_varString))
     numVarInChosenVarStr=len(_SET_varString.split(";"))
 
     # Updated dimensionality of phase space and discriminating variables
@@ -277,7 +287,7 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
             openProcesses.append(openProcess)
         exit_codes = [proc.wait() for proc in openProcesses]
 
-def mergeResults():
+def mergeResults(_SET_fileTag):
     '''
     After running the multi process q-factors there will be a bunch of resultsX.root files
     We will use the program "hadd" to add all the resulting root files together and then merge the final result file with the input tree
@@ -335,9 +345,9 @@ def combineAllGraphs():
     subprocess.Popen(cmd,shell=True).wait()
 
 
-#############################################################################
-###################    BEGIN RUNNING THE PROGRAM    #########################
-#############################################################################
+##############################################################################
+####################    BEGIN RUNNING THE PROGRAM    #########################
+##############################################################################
 for _SET_rootFileLoc, _SET_rootTreeName, _SET_fileTag in rootFileLocs:
     print("\n\n-------------------------------------")
     print("Starting running of {0}".format(_SET_rootFileLoc))
@@ -345,32 +355,43 @@ for _SET_rootFileLoc, _SET_rootTreeName, _SET_fileTag in rootFileLocs:
     print("FileTag: {0}".format(_SET_fileTag))
 
     numVar=len(varVec)
-    reconfigureSettings("configSettings.h",_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag)
-    if _SET_runQFactor:
-        runOverCombo(range(numVar),_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag)
-    if _SET_runMakeHists:
-        mergeResults()
-        runMakeGraphs(_SET_fileTag,_SET_emailWhenFinished)
+
+    if not _SET_runAllPhaseCombos:
+        combo=range(numVar)
+        tagVec=["0" for i in range(len(varVec))]
+        for ele in combo:
+            tagVec[ele]="1"
+        paddedCombo="".join(tagVec)
+        reconfigureSettings("configSettings.h",combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag+"_"+paddedCombo)
+        if _SET_runQFactor:
+            runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag+"_"+paddedCombo)
+        if _SET_runMakeHists:
+            mergeResults(_SET_fileTag+"_"+combo)
+            runMakeGraphs(_SET_fileTag+"_"+combo,_SET_emailWhenFinished)
+    else:
+        for numVar in range(1,len((varVec))+1):
+            combos=combinations(range(len(varVec)),numVar)
+            for combo in combos:
+                tagVec=["0" for i in range(len(varVec))]
+                for ele in combo:
+                    tagVec[ele]="1"
+                paddedCombo="".join(tagVec)
+                reconfigureSettings("configSettings.h",combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag+"_"+paddedCombo)
+                if _SET_runQFactor:
+                    runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag+"_"+paddedCombo)
+                if _SET_runMakeHists:
+                    mergeResults(_SET_fileTag+"_"+paddedCombo)
+                    runMakeGraphs(_SET_fileTag+"_"+paddedCombo,_SET_emailWhenFinished)
     if _SET_emailWhenFinished:
         print("Sending program finished email")
         subprocess.Popen("sendmail "+_SET_emailWhenFinished+" < defaultEmail.txt",shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
 
 # Once all the datasets have been run over we can combine all the results. This assumes the datasets should be combined...
-if _SET_runMakeHists:
+if _SET_runMakeHists and not _SET_runAllPhaseCombos:
     combineAllGraphs()
     
 # OLD: Use this code block to run over all possible combinations of variables
 # We are going pass as arugment a list of lists known as combo. This combo list contains all the lists of combos with numVar elements from the list varVec. If we use the command comboinations(range(3),2) we would get something like [ [1,2], [2,3], [1,3] ]. We can use these as indicies to index a a string of 0's to fill in whether a variable will be in use. i.e. if [1,3] is chosen then the string would be 101 with the second var turnedo off. This is useful when we are doing a scan of which variables we should use. Bruteforce style. 
-#counter=0
-#for numVar in range(1,len((varVec))+1):
-#    combos=combinations(range(len(varVec)),numVar)
-#    for combo in combos:
-#        counter+=1
-#        print combo
-#        if counter%4==0:
-#            continue
-#        print combo
-#        runOverCombo(combo,_SET_nentries,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag)
 
 print("--- %s seconds ---" % (time.time() - start_time))
 

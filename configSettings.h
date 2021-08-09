@@ -8,21 +8,21 @@ using namespace std;
 // DO NOT MODIFY THIS SECTION. GETS OVERWRITTEN BY RUN.PY
 // DO NOT MODIFY THIS SECTION. GETS OVERWRITTEN BY RUN.PY
 string cwd="/d/grid17/ln16/q-values-3";
-string rootFileLoc="degALL_flatEtapi_b1_trees_subset_shap.root";
-string rootTreeName="tree";
-string fileTag="flatEtapi";
+string rootFileLoc="degALL_data_2017_mEllipse_8288_chi13_tLT1_pipicut_omegacut_treeFlat_DSelector.root";
+string rootTreeName="degALL_data_2017_mEllipse_8288_chi13_tLT1_pipicut_omegacut_tree_flat";
+string fileTag="2017_11";
 string runTag="";
 string s_accWeight="AccWeight";
 string s_sbWeight="weightBSeta";
 string s_discrimVar="Meta";
-string s_phaseVar="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;mcprocess";
+string s_phaseVar="Mpi0eta;Mpi0g3";
 string standardizationType="range";
 string alwaysSaveTheseEvents="";
 bool saveMemUsuage=1;
 int nProcess=36;
 int kDim=400;
 const int ckDim=400; // same as kDim but just of const int type
-const int phaseSpaceDim=5;
+const int phaseSpaceDim=2;
 const int discrimVarDim=1;
 bool redistributeBkgSigFits=0;
 bool doKRandomNeighbors=0;
