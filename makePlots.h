@@ -95,6 +95,9 @@ void make2DHistsOnPads(TH2F* truth, TH2F* tot, TH2F* sig, TH2F* bkg, TH2F* sig_s
         allCanvases->cd(3);
         bkg->Draw("COLZ");
 
+        allCanvases->cd(4);
+        truth->Draw("COLZ");
+
         allCanvases->cd(5);
         sig_sb->Draw("COLZ");
 

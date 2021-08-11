@@ -16,6 +16,8 @@ vector<string> histsToMake={
     "cosTheta_X_cm",
     "cosTheta_eta_gj",
     "phi_eta_gj",
+    "ph124Rest_angle_g34",
+    "ph123Rest_angle_g34",
     "Mpi0;Meta",
     "Mpi0eta;cosTheta_eta_gj"
 };
@@ -82,7 +84,7 @@ void makePlots(bool makeTotal){
         string accWeightType;
 
         if(!s_accWeight.empty()){
-            cout << "Using accidental weight branch" << endl;
+            cout << "Using accidental weight branch: " << s_accWeight << endl;
             accWeightType=setBranchAddress(dataTree, s_accWeight, &accWeight_l, &accWeight_f, &accWeight);
             //dataTree->SetBranchAddress(s_accWeight.c_str(),&accWeight);
             //typeName=dataTree->GetLeaf(s_accWeight.c_str())->GetTypeName();
@@ -97,7 +99,7 @@ void makePlots(bool makeTotal){
             accWeightType="Float_t";
         }
         if(!s_sbWeight.empty()){
-            cout << "Using sideband weight branch" << endl;
+            cout << "Using sideband weight branch: " << s_sbWeight << endl;
             sbWeightType=setBranchAddress(dataTree, s_sbWeight, &sbWeight_l, &sbWeight_f, &sbWeight);
             //dataTree->SetBranchAddress(s_sbWeight.c_str(),&sbWeight);
         }
@@ -331,8 +333,9 @@ void makePlots(bool makeTotal){
                         i=mapVarsToPlotToIdx[varToPlot[0]+";"+varToPlot[1]];
                         float val1=values[nameToIdx[varToPlot[0]]][ientry];
                         float val2=values[nameToIdx[varToPlot[1]]][ientry];
-                        if ( (br!=NULL) & is_truecombo) 
+                        if ( (br!=NULL) & is_truecombo) {
                             hists2D_truth[i]->Fill(val1,val2);
+                        }
                         hists2D_tot[i]->Fill(val1,val2,totWeight);
                         hists2D_sig[i]->Fill(val1,val2,sigWeight);
                         hists2D_bkg[i]->Fill(val1,val2,bkgWeight);

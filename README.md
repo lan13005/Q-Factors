@@ -1,6 +1,9 @@
 ## Introduction to Q-Factor sideband subtraction at GlueX
 [The Original Paper introducing the Q-Factor method - Multivariate side-band subtraction using probabilistic event weights](https://arxiv.org/pdf/0809.2548.pdf)
 
+Updates:
+08/11/2011: Reogranization of the folders to allow for looping over all potential subsets of phase space variables. Useful in determining final phase space. makePlots also draws 2D matched thrown distributions if it can
+
 Sideband subtraction is a common technique used in particle physics to separate signal and background. The technique is relatively easy to implement but has some drawbacks. For this technique to work the kinematics of the sideband region should be the same as the kinematics of the signal region. Also, the yield in higher dimensional sidebands shrink exponentially which can enlarge statistical uncertainties. The Q-Factors technique is an alternative method to separate signal and background. 
 
 An implementation of this technique is developed to calculat Q-factors in the reaction <img src="https://render.githubusercontent.com/render/math?math=\gamma p\rightarrow\pi^0\eta p \rightarrow 4\gamma p"> at GlueX. Q-factors is an event-by-event multivariate sideband subtraction technique. The only requirement is the knowledge of the signal and background distribution of some discriminating variable. 

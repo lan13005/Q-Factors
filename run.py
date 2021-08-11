@@ -35,7 +35,7 @@ start_time = time.time()
 # saveEventLevelProcessSpeed:  include info on process speed into processLogX.log files
 # emailWhenFinished: we can send an email when the code is finished, no email sent if empty string
 # runBatch: Not ready - (default=0) 0=run on a single computer, 1=submit to condor for batch processing
-# _SET_runAllPhaseCombos: (bool) whether we should run over all possible subsets of the phase space. Number fits = Sum_i (n choose i); i=1 to n+1; n=size of varStringBase
+# runAllPhaseCombos: (bool) whether we should run over all possible subsets of the phase space. Number fits = Sum_i (n choose i); i=1 to n+1; n=size of varStringBase
 # extraLibs: Include extra libraries to compile main with. Intended for loading custom PDFs
 
 # -------- STANDARD ---------
@@ -50,17 +50,18 @@ rootFileLocs=[
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "135")
 #        ,("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_polAMO.root",
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "AMO")
-#        ("degALL_flatEtapi_b1_trees_subset_shap.root",
-#            "tree", "flatEtapi")
-        ("degALL_data_2017_mEllipse_8288_chi13_tLT1_pipicut_omegacut_treeFlat_DSelector.root", 
-            "degALL_data_2017_mEllipse_8288_chi13_tLT1_pipicut_omegacut_tree_flat", "2017")
+
+        ("degALL_flatEtapi_b1_trees_subset_shap.root",
+            "tree", "flatEtapi")
+#        ("degALL_data_2017_mEllipse_8288_tLT1_chi13_omegacut_treeFlat_DSelector.root", 
+#            "tree_4g_flat", "2017")
         ]
 
 _SET_accWeight="AccWeight" 
-_SET_sbWeight="weightBSeta" 
+_SET_sbWeight="weightBS" 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
-_SET_varStringBase="Mpi0eta;Mpi0g3" 
+_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3" 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj"
 _SET_discrimVars="Meta"#;Meta" 
 _SET_nProcess=36
@@ -320,7 +321,7 @@ def runMakeGraphs(_SET_fileTag,_SET_emailWhenFinished):
     print("running cmd: "+cmd)
     subprocess.Popen(cmd,shell=True).wait()
 
-def combineAllGraphs():
+def combineAllGraphs(_SET_fileTag):
     '''
     After running over all the different dataset we will just add all the histograms together and make one final plot
     postQVal_hists_TAG.root are outputs of makePlots.C
@@ -330,8 +331,8 @@ def combineAllGraphs():
     haddHistCmd="hadd -f diagnosticPlots"+_SET_runTag+"/postQVal_hists.root"
     haddTreeCmd="hadd -f logs"+_SET_runTag+"/postQVal_flatTree.root"
     for tag in tags:
-        haddHistCmd = haddHistCmd+" diagnosticPlots"+_SET_runTag+"/"+tag+"/postQVal_hists_"+tag+".root"
-        haddTreeCmd = haddTreeCmd+" logs"+_SET_runTag+"/"+tag+"/postQVal_flatTree_"+tag+".root"
+        haddHistCmd = haddHistCmd+" diagnosticPlots"+_SET_runTag+"/"+_SET_fileTag+"/postQVal_hists_"+_SET_fileTag+".root"
+        haddTreeCmd = haddTreeCmd+" logs"+_SET_runTag+"/"+_SET_fileTag+"/postQVal_flatTree_"+_SET_fileTag+".root"
     print("\n\n")
     print(haddHistCmd)
     print(haddTreeCmd)
@@ -366,8 +367,10 @@ for _SET_rootFileLoc, _SET_rootTreeName, _SET_fileTag in rootFileLocs:
         if _SET_runQFactor:
             runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag+"_"+paddedCombo)
         if _SET_runMakeHists:
-            mergeResults(_SET_fileTag+"_"+combo)
-            runMakeGraphs(_SET_fileTag+"_"+combo,_SET_emailWhenFinished)
+            mergeResults(_SET_fileTag+"_"+paddedCombo)
+            runMakeGraphs(_SET_fileTag+"_"+paddedCombo,_SET_emailWhenFinished)
+    #if _SET_runMakeHists:
+    #    combineAllGraphs(_SET_fileTag+"_"+paddedCombo)
     else:
         for numVar in range(1,len((varVec))+1):
             combos=combinations(range(len(varVec)),numVar)
@@ -387,8 +390,6 @@ for _SET_rootFileLoc, _SET_rootTreeName, _SET_fileTag in rootFileLocs:
         subprocess.Popen("sendmail "+_SET_emailWhenFinished+" < defaultEmail.txt",shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
 
 # Once all the datasets have been run over we can combine all the results. This assumes the datasets should be combined...
-if _SET_runMakeHists and not _SET_runAllPhaseCombos:
-    combineAllGraphs()
     
 # OLD: Use this code block to run over all possible combinations of variables
 # We are going pass as arugment a list of lists known as combo. This combo list contains all the lists of combos with numVar elements from the list varVec. If we use the command comboinations(range(3),2) we would get something like [ [1,2], [2,3], [1,3] ]. We can use these as indicies to index a a string of 0's to fill in whether a variable will be in use. i.e. if [1,3] is chosen then the string would be 101 with the second var turnedo off. This is useful when we are doing a scan of which variables we should use. Bruteforce style. 
