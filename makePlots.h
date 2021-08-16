@@ -76,6 +76,26 @@ void makeStackedHist(TH1F* truth, TH1F* tot, TH1F* sig, TH1F* bkg, TH1F* sig_sb,
 	stackedHists_overlay->GetYaxis()->SetTitle(tot->GetYaxis()->GetTitle());
         leg1_overlay->Draw();
 
+        if (haveTruth){
+            allCanvases->cd(4);
+            //sig->Sumw2(true); // says it is already initialized
+            //sig_sb->Sumw2(true); // says it is already initialized
+            int minBin=truth->FindFirstBinAbove(50);
+            int maxBin=truth->FindLastBinAbove(50);
+            cout << "Selected minBin, maxBin = " << minBin << ", " << maxBin << endl;
+            truth->GetXaxis()->SetRange(minBin,maxBin);
+            float reduced_chi_truth_q = truth->Chi2Test(sig,"UW CHI2/NDF"); 
+            float reduced_chi_truth_sb = truth->Chi2Test(sig_sb,"UW CHI2/NDF"); 
+            float pvalue_truth_q = truth->Chi2Test(sig,"UW"); 
+            float pvalue_truth_sb = truth->Chi2Test(sig_sb,"UW"); 
+            TPaveText *pt = new TPaveText(.05,.1,.95,.8);
+            pt->AddText(("pvalue,reduced_chi from: bin["+to_string(minBin)+","+to_string(maxBin)).c_str()+"]");
+            pt->AddText(("ChiSqTest(Truth,Q_sig)=("+to_string(pvalue_truth_q)+","+to_string(reduced_chi_truth_q)+")").c_str());
+            pt->AddText(("ChiSqTest(Truth,Q_sb)=("+to_string(pvalue_truth_sb)+","+to_string(reduced_chi_truth_sb)+")").c_str());
+            pt->Draw();
+        }
+
+
 	allCanvases->SaveAs((baseDir+"/"+name+".png").c_str());
 }
 

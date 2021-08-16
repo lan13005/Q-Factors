@@ -51,19 +51,19 @@ rootFileLocs=[
 #        ,("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_polAMO.root",
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "AMO")
 
-        ("degALL_flatEtapi_b1_trees_subset_shap.root",
-            "tree", "flatEtapi")
+        ("zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root",
+            "tree_4g_flat", "flatEtapi_b1_2D")
 #        ("degALL_data_2017_mEllipse_8288_tLT1_chi13_omegacut_treeFlat_DSelector.root", 
-#            "tree_4g_flat", "2017")
+#            "tree_4g_flat", "2017_2D")
         ]
 
 _SET_accWeight="AccWeight" 
 _SET_sbWeight="weightBS" 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
-_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3" 
+_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3;Mpi0g4" 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj"
-_SET_discrimVars="Meta"#;Meta" 
+_SET_discrimVars="Mpi0;Meta"#;Meta" 
 _SET_nProcess=36
 _SET_kDim=400
 _SET_nentries=-1
@@ -84,7 +84,7 @@ _SET_saveEventLevelProcessSpeed=1
 _SET_emailWhenFinished="" 
 _SET_runBatch=0 
 _SET_runAllPhaseCombos=0
-_SET_extraLibs=[]#"./auxilliary/customPDFs/bivariateGaus/bivariateGaus_cxx.so"]
+_SET_extraLibs=["./auxilliary/customPDFs/bivariateGaus/bivariateGaus_cxx.so"]
 
 #############################################################################
 ###################  DEALING WITH CMDLINE ARGS   #########################
@@ -207,8 +207,8 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
     os.system("mkdir -p logs"+_SET_runTag+"/"+_SET_fileTag)
     os.system("cp configSettings.h logs"+_SET_runTag+"/"+_SET_fileTag) 
     os.system("cp configPDFs.h logs"+_SET_runTag+"/"+_SET_fileTag) 
-    os.system("cp main.C logs"+_SET_runTag+"/main.C")
-    os.system("cp run.py logs"+_SET_runTag+"/run.py")
+    os.system("cp main.C logs"+_SET_runTag+"/"+_SET_fileTag+"/main.C")
+    os.system("cp run.py logs"+_SET_runTag+"/"+_SET_fileTag+"/run.py")
     os.system("mkdir -p histograms"+_SET_runTag+"/"+_SET_fileTag)
 
 

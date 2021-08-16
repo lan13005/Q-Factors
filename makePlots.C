@@ -16,10 +16,18 @@ vector<string> histsToMake={
     "cosTheta_X_cm",
     "cosTheta_eta_gj",
     "phi_eta_gj",
+    "cosTheta_eta_hel",
+    "phi_eta_hel",
     "ph124Rest_angle_g34",
     "ph123Rest_angle_g34",
+    "mandelstam_teta",
+    "vanHove_omega",
+    "Phi",
+    "Metap",
+    "Mpi0p",
     "Mpi0;Meta",
-    "Mpi0eta;cosTheta_eta_gj"
+    "Mpi0eta;cosTheta_eta_gj",
+    "Mpi0eta;cosTheta_eta_hel"
 };
 
 void makePlots(bool makeTotal){
@@ -127,15 +135,17 @@ void makePlots(bool makeTotal){
                 token = s.substr(0, pos);
                 if (std::find(branchesToGet.begin(), branchesToGet.end(), token) == branchesToGet.end()) 
                     branchesToGet.push_back(token);
+                cout << "inside while: " << token << endl;
                 tmp.push_back(token);
                 s.erase(0, pos + delim.length());
             }
             tmp.push_back(s);
+            cout << "outside while: " << s << endl;
             varsToPlot.push_back(tmp);
             if (std::find(branchesToGet.begin(), branchesToGet.end(), s) == branchesToGet.end()) 
                 branchesToGet.push_back(s);
         }
-        cout << "LOADING THE BRANCHES TO PLOT: "<< endl;
+        cout << "\nLOADING THE BRANCHES TO PLOT: "<< endl;
         for ( auto ele : branchesToGet)
             cout << ele << endl;
         string typeName;
