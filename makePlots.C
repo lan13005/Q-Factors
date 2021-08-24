@@ -25,10 +25,13 @@ vector<string> histsToMake={
     "Phi",
     "Metap",
     "Mpi0p",
+    "Mpi0;qvalue",
+    "Meta;qvalue",
     "Mpi0;Meta",
     "Mpi0eta;cosTheta_eta_gj",
     "Mpi0eta;cosTheta_eta_hel"
 };
+bool verbose=true;
 
 void makePlots(bool makeTotal){
 	gStyle->SetOptFit(111);
@@ -68,7 +71,6 @@ void makePlots(bool makeTotal){
 	dataTree->SetBranchAddress("qvalueBS_std",&qvalueBS_std);
         dataTree->SetBranchAddress("eff_nentries",&eff_nentries);
         dataTree->SetBranchAddress("neighbors",&neighbors);
-	std::vector< float > qvalues;
 	std::vector< float > bestNLLs;
 	std::vector< float > worstNLLs;
 	std::vector< float > worst_qvalues;
@@ -78,49 +80,79 @@ void makePlots(bool makeTotal){
         std::vector< std::array<int,ckDim> > neighborses;
         std::array<int,ckDim> copyableNeighbors;
 
+        // //////////////////////////////
         // SETUP VARIALBES FOR WEIGHTING
+        // //////////////////////////////
         cout << "LOADING WEIGHTING BRANCHES" << endl;
-        double sbWeight;
-        double accWeight;
-        float sbWeight_f;
-        float accWeight_f;
-        Long64_t sbWeight_l;
-        Long64_t accWeight_l;
-        std::vector<float> accWeights; accWeights.reserve(nentries); 
-	std::vector<float> sbWeights; sbWeights.reserve(nentries);
-        string sbWeightType;
-        string accWeightType;
 
-        if(!s_accWeight.empty()){
-            cout << "Using accidental weight branch: " << s_accWeight << endl;
-            accWeightType=setBranchAddress(dataTree, s_accWeight, &accWeight_l, &accWeight_f, &accWeight);
-            //dataTree->SetBranchAddress(s_accWeight.c_str(),&accWeight);
-            //typeName=dataTree->GetLeaf(s_accWeight.c_str())->GetTypeName();
-            //if (typeName=="Float_t")
-            //    dataTree->SetBranchAddress(s_accWeight.c_str(),&accWeight_f);
-            //if (typeName=="Double_t")
-            //    dataTree->SetBranchAddress(s_accWeight.c_str(),&accWeight);
+        if ((altWeightsDim==0)|(fitWeightsDim==0)){
+            cout << "either altWeights and fitWeights string is empty. If you want to set weights to 1 then use none as the string. exiting..." << endl;
+            exit(0);
         }
-        else{
-            cout << "Not using accidental weights" << endl;
-            accWeight_f=1;
-            accWeightType="Float_t";
-        }
-        if(!s_sbWeight.empty()){
-            cout << "Using sideband weight branch: " << s_sbWeight << endl;
-            sbWeightType=setBranchAddress(dataTree, s_sbWeight, &sbWeight_l, &sbWeight_f, &sbWeight);
-            //dataTree->SetBranchAddress(s_sbWeight.c_str(),&sbWeight);
-        }
-        else{
-            cout << "Not using sideband weights" << endl;
-            sbWeight=1;
-        }
+
+        //double altWeight[altWeightsDim];
+        //double fitWeight[fitWeightsDim];
+        //float altWeight_f[altWeightsDim];
+        //float fitWeight_f[fitWeightsDim];
+        //Long64_t altWeight_l[altWeightsDim];
+        //Long64_t fitWeight_l[fitWeightsDim];
+        //string altWeightType[altWeightsDim];
+        //string fitWeightType[fitWeightsDim];
+
+        //std::vector<float> emptyVec;
+        //std::vector<std::vector<float>> fitWeights; 
+        //for (int iVar=0; iVar<fitWeightsDim; ++ iVar){
+        //    fitWeights.push_back(emptyVec);
+        //    fitWeights[iVar].reserve(nentries); 
+        //}
+	//std::vector<std::vector<float>> altWeights; 
+        //for (int iVar=0; iVar<altWeightsDim; ++ iVar){
+        //    altWeights.push_back(emptyVec);
+        //    altWeights[iVar].reserve(nentries); 
+        //}
+
+        //string typeName;
+        //parseVarString parseFitWeightVars;
+	//parseFitWeightVars.parseString(s_fitWeight);
+        //if ( parseFitWeightVars.varStringSet.size() != fitWeightsDim ) { cout << "Uh-oh something went wrong. varString size not right size" << endl; }
+        //if ( (fitWeightsDim==1) * (parseFitWeightVars.varStringSet[0]=="none") ){
+        //    cout << "no global weighting" << endl;
+        //    fitWeight_f[0]=1;
+        //    fitWeightType[0]="Float_t";
+        //}
+        //else{
+	//    for (int iVar=0; iVar<fitWeightsDim; ++iVar){
+        //        cout << "Global weighting from fit weight branch: " << parseFitWeightVars.varStringSet[iVar]  << endl;
+        //        typeName=setBranchAddress(dataTree, parseFitWeightVars.varStringSet[iVar], &fitWeight_l[iVar], &fitWeight_f[iVar], &fitWeight[iVar]);
+        //        fitWeightType[iVar]=typeName;
+        //    }
+        //}
+
+        //parseVarString parseAltWeightVars;
+	//parseAltWeightVars.parseString(s_altWeight);
+        //if ( parseAltWeightVars.varStringSet.size() != altWeightsDim ) { cout << "Uh-oh something went wrong. varString size not right size" << endl; }
+        //if ( (altWeightsDim==1) * (parseAltWeightVars.varStringSet[0]=="none") ){
+        //    cout << "no altWeight branch specified to compare q-factors results to" << endl;
+        //    altWeight_f[0]=1;
+        //    altWeightType[0]="Float_t";
+        //}
+        //else{
+	//    for (int iVar=0; iVar<altWeightsDim; ++iVar){
+        //        cout << "Comparing q-factors to weighting from branch: " << parseAltWeightVars.varStringSet[iVar] << endl;
+        //        typeName=setBranchAddress(dataTree, parseAltWeightVars.varStringSet[iVar], &altWeight_l[iVar], &altWeight_f[iVar], &altWeight[iVar]);
+        //        altWeightType[iVar]=typeName;
+        //    }
+        //}
+
         TBranch* br = (TBranch*)dataTree->GetListOfBranches()->FindObject("is_truecombo");
         if (br){
             dataTree->SetBranchAddress("is_truecombo",&is_truecombo);
             cout << "is_truecombo branch exists - will overlay the matchedThrown distributions for you" << endl;
         }
         
+        // //////////////////////////////
+        // LOADING BRANCHES OF VARIABLES TO DRAW
+        // //////////////////////////////
         // we dont want to load the branch name multiple times (i.e. if there are repeated names in histsToMake)
         // so we can insert them into a set while parsing the inputs to get information on what variables to plot and dimensionality (i.e. TH1 or TH2)
         cout << "DETERMINING WHICH VARIABLES TO PLOT AND DIMENSIONALITY OF HISTOGRAMS" << endl;
@@ -135,19 +167,36 @@ void makePlots(bool makeTotal){
                 token = s.substr(0, pos);
                 if (std::find(branchesToGet.begin(), branchesToGet.end(), token) == branchesToGet.end()) 
                     branchesToGet.push_back(token);
-                cout << "inside while: " << token << endl;
+                //cout << "inside while: " << token << endl;
                 tmp.push_back(token);
                 s.erase(0, pos + delim.length());
             }
             tmp.push_back(s);
-            cout << "outside while: " << s << endl;
+            //cout << "outside while: " << s << endl;
             varsToPlot.push_back(tmp);
             if (std::find(branchesToGet.begin(), branchesToGet.end(), s) == branchesToGet.end()) 
                 branchesToGet.push_back(s);
         }
+        
+        parseVarString parseFitWeightVars;
+	parseFitWeightVars.parseString(s_fitWeight);
+        parseVarString parseAltWeightVars;
+	parseAltWeightVars.parseString(s_altWeight);
+        for (auto s: parseFitWeightVars.varStringSet){
+            if (std::find(branchesToGet.begin(), branchesToGet.end(), s) == branchesToGet.end())
+                branchesToGet.push_back(s);
+        }
+        for (auto s: parseAltWeightVars.varStringSet){
+            if (std::find(branchesToGet.begin(), branchesToGet.end(), s) == branchesToGet.end())
+                branchesToGet.push_back(s);
+        }
+        
+        // Always load the qvalue branch, otherwise what are we even doing...
+        if (std::find(branchesToGet.begin(), branchesToGet.end(), "qvalue") == branchesToGet.end())
+            branchesToGet.push_back("qvalue");
+        
+
         cout << "\nLOADING THE BRANCHES TO PLOT: "<< endl;
-        for ( auto ele : branchesToGet)
-            cout << ele << endl;
         string typeName;
         vector<string> typeNames;
         vector<double> value(branchesToGet.size(),0);
@@ -156,11 +205,15 @@ void makePlots(bool makeTotal){
         vector<float> minValue(branchesToGet.size(),FLT_MAX);
         vector<float> maxValue(branchesToGet.size(),FLT_MIN);
         vector<vector<float>> values;
-        map<string,int> nameToIdx;
+        map<string,int> nameToIdx; // maps a branch (string) to the index inside values, values is a vector of vectors 
         int i=0;
         for (auto s: branchesToGet){
+            cout << "(" << i << ")";
             //dataTree->SetBranchAddress(s.c_str(),&value[i]);
-            typeName=setBranchAddress(dataTree, s, &value_l[i], &value_f[i], &value[i]);
+            if(s=="none")
+                typeNames.push_back("Float_t");
+            else
+                typeName=setBranchAddress(dataTree, s, &value_l[i], &value_f[i], &value[i]);
             typeNames.push_back(typeName);
             nameToIdx[s]=i;
             values.push_back(vector<float>{});
@@ -173,32 +226,8 @@ void makePlots(bool makeTotal){
 	{
 		dataTree->GetEntry(ientry);
 
-                if (accWeightType=="Float_t")
-                    accWeights.push_back(accWeight_f);
-                if (accWeightType=="Double_t")
-                    accWeights.push_back(accWeight);
-                if (accWeightType=="Long64_t")
-                    accWeights.push_back(accWeight_l);
-                if (sbWeightType=="Float_t")
-		    sbWeights.push_back(sbWeight_f);
-                if (sbWeightType=="Double_t")
-		    sbWeights.push_back(sbWeight);
-                if (sbWeightType=="Long64_t")
-		    sbWeights.push_back(sbWeight_l);
-
-                auto it = std::find(branchesToGet.begin(), branchesToGet.end(), "qvalue");
-                if ( it  != branchesToGet.end() ){
-                    //cout << "qvalue branch found in branchesToGet (set of variables used to make the requested histograms)" << endl;
-                    int index=distance(branchesToGet.begin(),it); // index of the q-factors array
-		    qvalues.push_back(value_f[index]); // qvalues is defined to be a float from the q-factors program
-                }
-                else{
-                    qvalues.push_back(qvalue);
-                }
-
                 if (br)
                     is_truecombos.push_back(is_truecombo);
-
 
 		bestNLLs.push_back(bestNLL);
 		worstNLLs.push_back(worstNLL);
@@ -209,17 +238,17 @@ void makePlots(bool makeTotal){
                 neighborses.push_back(copyableNeighbors);
 
                 for (int j=0; j<(int)branchesToGet.size(); ++j){
-                    if(typeNames[j]=="Float_t"){
-                        values[j].push_back(value_f[j]);
+                    if(branchesToGet[j]=="none"){
+                        value_f[j]=1; 
                     }
+                    // if(typeNames[j]=="Float_t") we do nothing
                     if(typeNames[j]=="Double_t"){
                         value_f[j]=value[j]; // copy it over to value_f so we can simply code when finding min and max values below 
-                        values[j].push_back(value_f[j]);
                     }
                     if(typeNames[j]=="Long64_t"){
                         value_f[j]=value_l[j]; 
-                        values[j].push_back(value_f[j]);
                     }
+                    values[j].push_back(value_f[j]);
                     if (value_f[j] < minValue[j])
                         minValue[j]=value_f[j];
                     if (value_f[j] > maxValue[j])
@@ -227,6 +256,15 @@ void makePlots(bool makeTotal){
                 }
 	}
 
+        cout << "////// JUST SOME CHECKS //////" << endl;
+        for (auto j=0; j<values.size(); ++j){
+            cout << "size of " << branchesToGet[j] << " branch: " << values[j].size() << endl; 
+            cout << "  first 10 elements: ";
+            for (auto jj=0; jj<10; ++jj)
+                cout << values[j][jj] << ", "; 
+            cout << endl;
+        }
+        cout << "/////////////////////////////" << endl;
 
         // -----------------------------------
         // Defining Histograms
@@ -297,14 +335,18 @@ void makePlots(bool makeTotal){
 	float sigWeight_sb;
 	float bkgWeight_sb;
         float baseWeight; 
+        float altWeight;
 
 	for (int ientry=0; ientry<nentries; ientry++){
-		qvalue = qvalues[ientry];
-                accWeight=accWeights[ientry];
-                sbWeight=sbWeights[ientry];
+		qvalue = values[nameToIdx["qvalue"]][ientry];
+                baseWeight=values[nameToIdx[parseFitWeightVars.varStringSet[0]]][ientry];
+                for (int iVar=1; iVar<fitWeightsDim; ++iVar)
+                    baseWeight *= values[nameToIdx[parseFitWeightVars.varStringSet[iVar]]][ientry];
+                altWeight=values[nameToIdx[parseAltWeightVars.varStringSet[0]]][ientry];
+                for (int iVar=1; iVar<altWeightsDim; ++iVar)
+                    altWeight *= values[nameToIdx[parseAltWeightVars.varStringSet[iVar]]][ientry];
                 if (br)
                     is_truecombo=is_truecombos[ientry];
-                baseWeight=accWeight;
 
                 if (isnan(qvalue)){
                     cout << "(ientry:"<<ientry<<") qvalue is nan... exiting..." << endl;
@@ -314,14 +356,14 @@ void makePlots(bool makeTotal){
                 ////////////////////////////////////
                 // Multiply q-factor and accidetal weights if requested
                 ////////////////////////////////////
-		sigWeight = qvalue*baseWeight;
+		sigWeight = baseWeight*qvalue;
 		totWeight = baseWeight;
 		bkgWeight = totWeight-sigWeight;
 
                 //////////////////////////////
                 // Multiply sideband and accidental weights if requested 
                 //////////////////////////////
-                sigWeight_sb = baseWeight*sbWeight;
+                sigWeight_sb = baseWeight*altWeight;
                 bkgWeight_sb = totWeight-sigWeight_sb;
             
                 ////////////////////////////////////

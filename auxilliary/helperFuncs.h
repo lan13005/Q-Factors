@@ -247,4 +247,28 @@ string setBranchAddress(TTree* tree, string variable, Long64_t* value_i, float* 
    return typeName; 
 }
 
+// Find the intersection of two vector of strings
+std::vector<std::string> intersection(std::vector<std::string> &v1,
+                                      std::vector<std::string> &v2){
+    std::vector<std::string> v3;
+
+    std::sort(v1.begin(), v1.end());
+    std::sort(v2.begin(), v2.end());
+
+    std::set_intersection(v1.begin(),v1.end(),
+                          v2.begin(),v2.end(),
+                          back_inserter(v3));
+    return v3;
+}
+
+// Get index of string in vector<string>
+int getIndex(vector<string> v, string K)
+{
+    auto it = find(v.begin(), v.end(), K);
+    if (it != v.end())
+        return it-v.begin();
+    else
+        return -1;
+}
+
 #endif

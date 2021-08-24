@@ -40,7 +40,7 @@ void makeStackedHist(TH1F* truth, TH1F* tot, TH1F* sig, TH1F* bkg, TH1F* sig_sb,
 	leg1_overlay->AddEntry(sig_sb,"SB_Sig","l");
 
         if (haveTruth){
-            truth->SetFillColorAlpha(kGray,0.7);
+            truth->SetFillColorAlpha(kGreen-6,0.7);
             truth->SetLineColorAlpha(8,0);
             leg1_overlay->AddEntry(truth,"matchedThrown","f");
         }
@@ -89,7 +89,7 @@ void makeStackedHist(TH1F* truth, TH1F* tot, TH1F* sig, TH1F* bkg, TH1F* sig_sb,
             float pvalue_truth_q = truth->Chi2Test(sig,"UW"); 
             float pvalue_truth_sb = truth->Chi2Test(sig_sb,"UW"); 
             TPaveText *pt = new TPaveText(.05,.1,.95,.8);
-            pt->AddText(("pvalue,reduced_chi from: bin["+to_string(minBin)+","+to_string(maxBin)).c_str()+"]");
+            pt->AddText(("pvalue,reduced_chi from: bin["+to_string(minBin)+","+to_string(maxBin)+"]").c_str());
             pt->AddText(("ChiSqTest(Truth,Q_sig)=("+to_string(pvalue_truth_q)+","+to_string(reduced_chi_truth_q)+")").c_str());
             pt->AddText(("ChiSqTest(Truth,Q_sb)=("+to_string(pvalue_truth_sb)+","+to_string(reduced_chi_truth_sb)+")").c_str());
             pt->Draw();

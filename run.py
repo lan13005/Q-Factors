@@ -12,8 +12,8 @@ start_time = time.time()
 ### NOTE: The code calculates the q-factor for all events in the branch, make sure you feed only those events of interest
 ## --- STANDARD ----
 # rootFileLocs: Root file to be analyzed, followed by the name of the tree and a name tag to avoid overwriting runs
-# accWeight: Name of branch with the accidental subtraction weight. empty string to not use accidental weights
-# sbWeight: Name of branch with the sideband subtraction weight. Will only be used for comparison purposes. empty string to not use accidental weights
+# fitWeights: Name of branch with the fit weighting. Fitted histograms will be weighted by this. "none" to set weights to 1
+# altWeights: Name of branch with the comparison/alternative weights. Will only be used for comparison purposes in makePlots program. "none" to set weights to 1
 # varStringBase: semicolon separated branch names to get phase space variables for distance calculation
 # discrimVars: semicolon separated branch names to get discriminating/reference variables
 # nProcess: Number of processes to spawn
@@ -52,18 +52,18 @@ rootFileLocs=[
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "AMO")
 
         ("zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root",
-            "tree_4g_flat", "flatEtapi_b1_2D")
+            "tree_4g_flat", "flatEtapi_b1_test")
 #        ("degALL_data_2017_mEllipse_8288_tLT1_chi13_omegacut_treeFlat_DSelector.root", 
 #            "tree_4g_flat", "2017_2D")
         ]
 
-_SET_accWeight="AccWeight" 
-_SET_sbWeight="weightBS" 
+_SET_fitWeights="AccWeight" 
+_SET_altWeights="weightBS" 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
-_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3;Mpi0g4" 
+_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3" 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj"
-_SET_discrimVars="Mpi0;Meta"#;Meta" 
+_SET_discrimVars="Meta"#;Meta" 
 _SET_nProcess=36
 _SET_kDim=400
 _SET_nentries=-1
@@ -162,8 +162,8 @@ def reconfigureSettings(fileName, combo, _SET_rootFileLoc, _SET_rootTreeName, _S
     spawnProcessChangeSetting("cwd",os.getcwd(),fileName,True)
     spawnProcessChangeSetting("standardizationType",_SET_standardizationType,fileName,True)
     spawnProcessChangeSetting("s_discrimVar",_SET_discrimVars,fileName,True)
-    spawnProcessChangeSetting("s_accWeight",_SET_accWeight,fileName,True)
-    spawnProcessChangeSetting("s_sbWeight",_SET_sbWeight,fileName,True)
+    spawnProcessChangeSetting("s_fitWeight",_SET_fitWeights,fileName,True)
+    spawnProcessChangeSetting("s_altWeight",_SET_altWeights,fileName,True)
     spawnProcessChangeSetting("standardizationType",_SET_standardizationType,fileName,True)
     spawnProcessChangeSetting("alwaysSaveTheseEvents",_SET_alwaysSaveTheseEvents,fileName,True)
 
@@ -218,11 +218,17 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
     print("PHASE SPACE VARIABLES: {}".format(_SET_varString))
     numVarInChosenVarStr=len(_SET_varString.split(";"))
 
-    # Updated dimensionality of phase space and discriminating variables
+    # Updated dimensionality of phase space and discriminating variables and fitWeights and altWeights
     changeDims=["sed","-i","s@const int phaseSpaceDim=.*;@const int phaseSpaceDim="+str(numVarInChosenVarStr)+";@g","configSettings.h"]
     print(" ".join(changeDims))
     subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
     changeDims=["sed","-i","s@const int discrimVarDim=.*;@const int discrimVarDim="+str(len(_SET_discrimVars.split(";")))+";@g","configSettings.h"]
+    print(" ".join(changeDims))
+    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
+    changeDims=["sed","-i","s@const int fitWeightsDim=.*;@const int fitWeightsDim="+str(len(_SET_fitWeights.split(";")))+";@g","configSettings.h"]
+    print(" ".join(changeDims))
+    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
+    changeDims=["sed","-i","s@const int altWeightsDim=.*;@const int altWeightsDim="+str(len(_SET_altWeights.split(";")))+";@g","configSettings.h"]
     print(" ".join(changeDims))
     subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
     

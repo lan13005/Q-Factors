@@ -56,12 +56,13 @@ class QFactorAnalysis{
                 // initialize vectors to hold the discriminating and phase space variables
                 parseVarString parseDiscrimVars;
 	        parseVarString parsePhaseSpace;
+                parseVarString parseFitWeightVars;
                 parseVarString parseEventsToSave;
                 std::vector<std::vector<float>> discrimVars; // holds all the data for discriminating variables
                 std::vector<std::vector<float>> phaseSpaceVars; // holds all the data for the phase space varialbes
 
                 float weight;
-		std::vector<float> accWeights; 
+		std::vector<std::vector<float>> fitWeights; 
                 // Not all combinations will be a valid pairing. Suppose we only care about spectroscopically unique pairs, 
                 // then we can fill phasePoint2PotentialNeighbor with only unique combos.
 		std::vector<int> phasePoint2PotentialNeighbor; 
