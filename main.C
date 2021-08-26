@@ -630,11 +630,11 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                         bool keptNeighbor = fm.insert(neighborValues,weight);
 
                         if (keptNeighbor && saveBranchOfNeighbors){
-                            cout << "(saving)";
+                            //cout << "(saving)";
                             neighbors[iNeighbor]=newPair.second;
                             ++iNeighbor;
                         }
-                        //if (verbose_outputDistCalc){
+                        if (verbose_outputDistCalc){
                             if (discrimVarDim==1){
 		                cout << "(neighbor, distance, idx)=(" << iNeighbor << ", " << newPair.first << ", " << newPair.second << ") with x = " << 
                                     values[newPair.second*nbranches+discrimIdxs[0]] << 
@@ -646,7 +646,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                                     values[newPair.second*nbranches+discrimIdxs[1]] << 
                                     " and weight= " << weight << endl; 
                             }
-                        //}
+                        }
 		    }
 		    
 		    duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
