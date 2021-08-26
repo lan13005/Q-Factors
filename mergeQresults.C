@@ -1,5 +1,6 @@
 //The goal of this program is to read in all the q-value results and organizes them to be used when creating any histogram
 #include "configSettings.h"
+#include "auxilliary/helperFuncs.h"
 
 void mergeQresults(){
         cout << "\n========================" << endl;
@@ -30,16 +31,17 @@ void mergeQresults(){
         int kDim1; // kDim1 is an int whereas kDim is a const int so we can make an array out of it
         int neighbors[kDim];
 
-	qResultsTree->SetBranchAddress("qvalue",&qvalue);
-	qResultsTree->SetBranchAddress("fitStatus",&fitStatus);
-	qResultsTree->SetBranchAddress("bestNLL",&bestNLL);
-	qResultsTree->SetBranchAddress("worstNLL",&worstNLL);
-        qResultsTree->SetBranchAddress("worst_qvalue",&worst_qvalue);
-        qResultsTree->SetBranchAddress("qvalueBS_std",&qvalueBS_std);
-        qResultsTree->SetBranchAddress("eff_nentries",&eff_nentries);
-        qResultsTree->SetBranchAddress("kDim",&kDim1);
+        string s_discrimVar2 = replace_str(s_discrimVar,";","_");
+	qResultsTree->SetBranchAddress(("qvalue_"+s_discrimVar2).c_str(),&qvalue);
+	qResultsTree->SetBranchAddress(("fitStatus_"+s_discrimVar2).c_str(),&fitStatus);
+	qResultsTree->SetBranchAddress(("bestNLL_"+s_discrimVar2).c_str(),&bestNLL);
+	qResultsTree->SetBranchAddress(("worstNLL_"+s_discrimVar2).c_str(),&worstNLL);
+        qResultsTree->SetBranchAddress(("worst_qvalue_"+s_discrimVar2).c_str(),&worst_qvalue);
+        qResultsTree->SetBranchAddress(("qvalueBS_std_"+s_discrimVar2).c_str(),&qvalueBS_std);
+        qResultsTree->SetBranchAddress(("eff_nentries_"+s_discrimVar2).c_str(),&eff_nentries);
+        qResultsTree->SetBranchAddress(("kDim_"+s_discrimVar2).c_str(),&kDim1);
         if (saveBranchOfNeighbors)
-            qResultsTree->SetBranchAddress("neighbors",neighbors);
+            qResultsTree->SetBranchAddress(("neighbors_"+s_discrimVar2).c_str(),neighbors);
         cout << "Setting branch address..." << endl;
 
         int nentries;
@@ -63,17 +65,17 @@ void mergeQresults(){
 	TTree *outputTree = dataTree->CloneTree(-1,"fast"); 
 	cout << "Cloned input to output file" << postQFileName << endl;
 
-	TBranch* b_qvalue = outputTree->Branch("qvalue",&qvalue,"qvalue/F");
-	TBranch* b_fitStatus = outputTree->Branch("fitStatus",&fitStatus,"fitStatus/I");
-	TBranch* b_NLLBest = outputTree->Branch("NLLBest",&bestNLL,"qvalue_NLLBest/F");
-	TBranch* b_NLLWorst = outputTree->Branch("NLLWorst",&worstNLL,"qvalue_NLLWorst/F");
-	TBranch* b_worst_qvalue = outputTree->Branch("worst_qvalue",&worst_qvalue,"worst_qvalue/F");
-	TBranch* b_qvalueBS_std = outputTree->Branch("qvalueBS_std",&qvalueBS_std,"qvalueBS_std/F");
-        TBranch* b_eff_nentries = outputTree->Branch("eff_nentries",&eff_nentries,"eff_nentries/F");
-        TBranch* b_kDim = outputTree->Branch("kDim",&kDim1,"kDim/I");
+	TBranch* b_qvalue = outputTree->Branch(("qvalue_"+s_discrimVar2).c_str(),&qvalue,("qvalue_"+s_discrimVar2+"/F").c_str());
+	TBranch* b_fitStatus = outputTree->Branch(("fitStatus_"+s_discrimVar2).c_str(),&fitStatus,("fitStatus_"+s_discrimVar2+"/I").c_str());
+	TBranch* b_NLLBest = outputTree->Branch(("NLLBest_"+s_discrimVar2).c_str(),&bestNLL,("qvalue_NLLBest_"+s_discrimVar2+"/F").c_str());
+	TBranch* b_NLLWorst = outputTree->Branch(("NLLWorst_"+s_discrimVar2).c_str(),&worstNLL,("qvalue_NLLWorst_"+s_discrimVar2+"/F").c_str());
+	TBranch* b_worst_qvalue = outputTree->Branch(("worst_qvalue_"+s_discrimVar2).c_str(),&worst_qvalue,("worst_qvalue_"+s_discrimVar2+"/F").c_str());
+	TBranch* b_qvalueBS_std = outputTree->Branch(("qvalueBS_std_"+s_discrimVar2).c_str(),&qvalueBS_std,("qvalueBS_std_"+s_discrimVar2+"/F").c_str());
+        TBranch* b_eff_nentries = outputTree->Branch(("eff_nentries_"+s_discrimVar2).c_str(),&eff_nentries,("eff_nentries_"+s_discrimVar2+"/F").c_str());
+        TBranch* b_kDim = outputTree->Branch(("kDim_"+s_discrimVar2).c_str(),&kDim1,("kDim_"+s_discrimVar2+"/I").c_str());
         TBranch* b_neighbors;
         if (saveBranchOfNeighbors)
-            b_neighbors = outputTree->Branch("neighbors",&neighbors,"neighbors[kDim]/I");
+            b_neighbors = outputTree->Branch(("neighbors_"+s_discrimVar2).c_str(),&neighbors,("neighbors_"+s_discrimVar2+"[kDim_"+s_discrimVar2+"]/I").c_str());
         cout << "Added new branches to output file..." <<endl;
 
 	for (int ientry=0; ientry<nentries; ientry++)

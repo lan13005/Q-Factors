@@ -25,8 +25,8 @@ vector<string> histsToMake={
     "Phi",
     "Metap",
     "Mpi0p",
-    "Mpi0;qvalue",
-    "Meta;qvalue",
+    //"Mpi0;qvalue_Meta",
+    //"Meta;qvalue_Meta",
     "Mpi0;Meta",
     "Mpi0eta;cosTheta_eta_gj",
     "Mpi0eta;cosTheta_eta_hel"
@@ -64,13 +64,13 @@ void makePlots(bool makeTotal){
         float eff_nentries;
         bool is_truecombo;
         int neighbors[ckDim];
-	dataTree->SetBranchAddress("qvalue",&qvalue);
-	dataTree->SetBranchAddress("NLLBest",&bestNLL);
-	dataTree->SetBranchAddress("NLLWorst",&worstNLL);
-	dataTree->SetBranchAddress("worst_qvalue",&worst_qvalue);
-	dataTree->SetBranchAddress("qvalueBS_std",&qvalueBS_std);
-        dataTree->SetBranchAddress("eff_nentries",&eff_nentries);
-        dataTree->SetBranchAddress("neighbors",&neighbors);
+        string s_discrimVar2 = replace_str(s_discrimVar,";","_");
+	dataTree->SetBranchAddress(("NLLBest_"+s_discrimVar2).c_str(),&bestNLL);
+	dataTree->SetBranchAddress(("NLLWorst_"+s_discrimVar2).c_str(),&worstNLL);
+	dataTree->SetBranchAddress(("worst_qvalue_"+s_discrimVar2).c_str(),&worst_qvalue);
+	dataTree->SetBranchAddress(("qvalueBS_std_"+s_discrimVar2).c_str(),&qvalueBS_std);
+        dataTree->SetBranchAddress(("eff_nentries_"+s_discrimVar2).c_str(),&eff_nentries);
+        dataTree->SetBranchAddress(("neighbors_"+s_discrimVar2).c_str(),&neighbors);
 	std::vector< float > bestNLLs;
 	std::vector< float > worstNLLs;
 	std::vector< float > worst_qvalues;
@@ -81,68 +81,13 @@ void makePlots(bool makeTotal){
         std::array<int,ckDim> copyableNeighbors;
 
         // //////////////////////////////
-        // SETUP VARIALBES FOR WEIGHTING
+        // DOING SOME CHECKS REAL QUICK AND LOAD TRUTH
         // //////////////////////////////
         cout << "LOADING WEIGHTING BRANCHES" << endl;
-
         if ((altWeightsDim==0)|(fitWeightsDim==0)){
             cout << "either altWeights and fitWeights string is empty. If you want to set weights to 1 then use none as the string. exiting..." << endl;
             exit(0);
         }
-
-        //double altWeight[altWeightsDim];
-        //double fitWeight[fitWeightsDim];
-        //float altWeight_f[altWeightsDim];
-        //float fitWeight_f[fitWeightsDim];
-        //Long64_t altWeight_l[altWeightsDim];
-        //Long64_t fitWeight_l[fitWeightsDim];
-        //string altWeightType[altWeightsDim];
-        //string fitWeightType[fitWeightsDim];
-
-        //std::vector<float> emptyVec;
-        //std::vector<std::vector<float>> fitWeights; 
-        //for (int iVar=0; iVar<fitWeightsDim; ++ iVar){
-        //    fitWeights.push_back(emptyVec);
-        //    fitWeights[iVar].reserve(nentries); 
-        //}
-	//std::vector<std::vector<float>> altWeights; 
-        //for (int iVar=0; iVar<altWeightsDim; ++ iVar){
-        //    altWeights.push_back(emptyVec);
-        //    altWeights[iVar].reserve(nentries); 
-        //}
-
-        //string typeName;
-        //parseVarString parseFitWeightVars;
-	//parseFitWeightVars.parseString(s_fitWeight);
-        //if ( parseFitWeightVars.varStringSet.size() != fitWeightsDim ) { cout << "Uh-oh something went wrong. varString size not right size" << endl; }
-        //if ( (fitWeightsDim==1) * (parseFitWeightVars.varStringSet[0]=="none") ){
-        //    cout << "no global weighting" << endl;
-        //    fitWeight_f[0]=1;
-        //    fitWeightType[0]="Float_t";
-        //}
-        //else{
-	//    for (int iVar=0; iVar<fitWeightsDim; ++iVar){
-        //        cout << "Global weighting from fit weight branch: " << parseFitWeightVars.varStringSet[iVar]  << endl;
-        //        typeName=setBranchAddress(dataTree, parseFitWeightVars.varStringSet[iVar], &fitWeight_l[iVar], &fitWeight_f[iVar], &fitWeight[iVar]);
-        //        fitWeightType[iVar]=typeName;
-        //    }
-        //}
-
-        //parseVarString parseAltWeightVars;
-	//parseAltWeightVars.parseString(s_altWeight);
-        //if ( parseAltWeightVars.varStringSet.size() != altWeightsDim ) { cout << "Uh-oh something went wrong. varString size not right size" << endl; }
-        //if ( (altWeightsDim==1) * (parseAltWeightVars.varStringSet[0]=="none") ){
-        //    cout << "no altWeight branch specified to compare q-factors results to" << endl;
-        //    altWeight_f[0]=1;
-        //    altWeightType[0]="Float_t";
-        //}
-        //else{
-	//    for (int iVar=0; iVar<altWeightsDim; ++iVar){
-        //        cout << "Comparing q-factors to weighting from branch: " << parseAltWeightVars.varStringSet[iVar] << endl;
-        //        typeName=setBranchAddress(dataTree, parseAltWeightVars.varStringSet[iVar], &altWeight_l[iVar], &altWeight_f[iVar], &altWeight[iVar]);
-        //        altWeightType[iVar]=typeName;
-        //    }
-        //}
 
         TBranch* br = (TBranch*)dataTree->GetListOfBranches()->FindObject("is_truecombo");
         if (br){
@@ -192,11 +137,14 @@ void makePlots(bool makeTotal){
         }
         
         // Always load the qvalue branch, otherwise what are we even doing...
-        if (std::find(branchesToGet.begin(), branchesToGet.end(), "qvalue") == branchesToGet.end())
-            branchesToGet.push_back("qvalue");
+        if (std::find(branchesToGet.begin(), branchesToGet.end(), "qvalue_"+s_discrimVar2) == branchesToGet.end())
+            branchesToGet.push_back("qvalue_"+s_discrimVar2);
         
 
         cout << "\nLOADING THE BRANCHES TO PLOT: "<< endl;
+        for (auto s: branchesToGet){
+            cout << s << endl;
+        }
         string typeName;
         vector<string> typeNames;
         vector<double> value(branchesToGet.size(),0);
@@ -210,6 +158,7 @@ void makePlots(bool makeTotal){
         for (auto s: branchesToGet){
             cout << "(" << i << ")";
             //dataTree->SetBranchAddress(s.c_str(),&value[i]);
+            cout << "[" << s << "]";
             if(s=="none")
                 typeNames.push_back("Float_t");
             else
@@ -276,12 +225,14 @@ void makePlots(bool makeTotal){
         vector<TH1F*> hists1D_tot;
         vector<TH1F*> hists1D_sig;
         vector<TH1F*> hists1D_bkg;
+        vector<TH1F*> hists1D_tot_sb;
         vector<TH1F*> hists1D_sig_sb;
         vector<TH1F*> hists1D_bkg_sb;
         vector<TH2F*> hists2D_truth;
         vector<TH2F*> hists2D_tot;
         vector<TH2F*> hists2D_sig;
         vector<TH2F*> hists2D_bkg;
+        vector<TH2F*> hists2D_tot_sb;
         vector<TH2F*> hists2D_sig_sb;
         vector<TH2F*> hists2D_bkg_sb;
 
@@ -296,6 +247,7 @@ void makePlots(bool makeTotal){
                 hists1D_tot.push_back(new TH1F((varToPlot[0]+"_tot").c_str(),("tot;"+varToPlot[0]).c_str(),75,minVal,maxVal));
                 hists1D_sig.push_back(new TH1F((varToPlot[0]+"_sig").c_str(),("sig;"+varToPlot[0]).c_str(),75,minVal,maxVal));
                 hists1D_bkg.push_back(new TH1F((varToPlot[0]+"_bkg").c_str(),("bkg;"+varToPlot[0]).c_str(),75,minVal,maxVal));
+                hists1D_tot_sb.push_back(new TH1F((varToPlot[0]+"_sb_tot").c_str(),("sb_tot;"+varToPlot[0]).c_str(),75,minVal,maxVal));
                 hists1D_sig_sb.push_back(new TH1F((varToPlot[0]+"_sb_sig").c_str(),("sb_sig;"+varToPlot[0]).c_str(),75,minVal,maxVal));
                 hists1D_bkg_sb.push_back(new TH1F((varToPlot[0]+"_sb_bkg").c_str(),("sb_bkg;"+varToPlot[0]).c_str(),75,minVal,maxVal));
                 mapVarsToPlotToIdx[varToPlot[0]]=idx1D;
@@ -315,6 +267,8 @@ void makePlots(bool makeTotal){
                         new TH2F((varToPlot[0]+"Vs"+varToPlot[1]+"_sig").c_str(),("sig;"+varToPlot[0]+";"+varToPlot[1]).c_str(),75,minVal1,maxVal1,75,minVal2,maxVal2));
                 hists2D_bkg.push_back(
                         new TH2F((varToPlot[0]+"Vs"+varToPlot[1]+"_bkg").c_str(),("bkg;"+varToPlot[0]+";"+varToPlot[1]).c_str(),75,minVal1,maxVal1,75,minVal2,maxVal2));
+                hists2D_tot_sb.push_back(
+                        new TH2F((varToPlot[0]+"Vs"+varToPlot[1]+"_sb_tot").c_str(),("sb_tot;"+varToPlot[0]+";"+varToPlot[1]).c_str(),75,minVal1,maxVal1,75,minVal2,maxVal2));
                 hists2D_sig_sb.push_back(
                         new TH2F((varToPlot[0]+"Vs"+varToPlot[1]+"_sb_sig").c_str(),("sb_sig;"+varToPlot[0]+";"+varToPlot[1]).c_str(),
                             75,minVal1,maxVal1,75,minVal2,maxVal2));
@@ -332,13 +286,14 @@ void makePlots(bool makeTotal){
 	float sigWeight;
 	float totWeight;
 	float bkgWeight;
+	float totWeight_sb;
 	float sigWeight_sb;
 	float bkgWeight_sb;
         float baseWeight; 
         float altWeight;
 
 	for (int ientry=0; ientry<nentries; ientry++){
-		qvalue = values[nameToIdx["qvalue"]][ientry];
+		qvalue = values[nameToIdx[("qvalue_"+s_discrimVar2).c_str()]][ientry];
                 baseWeight=values[nameToIdx[parseFitWeightVars.varStringSet[0]]][ientry];
                 for (int iVar=1; iVar<fitWeightsDim; ++iVar)
                     baseWeight *= values[nameToIdx[parseFitWeightVars.varStringSet[iVar]]][ientry];
@@ -363,8 +318,9 @@ void makePlots(bool makeTotal){
                 //////////////////////////////
                 // Multiply sideband and accidental weights if requested 
                 //////////////////////////////
-                sigWeight_sb = baseWeight*altWeight;
-                bkgWeight_sb = totWeight-sigWeight_sb;
+                sigWeight_sb = altWeight;
+		totWeight_sb = 1;
+                bkgWeight_sb = totWeight_sb-sigWeight_sb;
             
                 ////////////////////////////////////
                 // Fill histograms
@@ -378,6 +334,7 @@ void makePlots(bool makeTotal){
                         hists1D_tot[i]->Fill(val1,totWeight);
                         hists1D_sig[i]->Fill(val1,sigWeight);
                         hists1D_bkg[i]->Fill(val1,bkgWeight);
+                        hists1D_tot_sb[i]->Fill(val1,totWeight_sb);
                         hists1D_sig_sb[i]->Fill(val1,sigWeight_sb);
                         hists1D_bkg_sb[i]->Fill(val1,bkgWeight_sb);
                     }
@@ -391,6 +348,7 @@ void makePlots(bool makeTotal){
                         hists2D_tot[i]->Fill(val1,val2,totWeight);
                         hists2D_sig[i]->Fill(val1,val2,sigWeight);
                         hists2D_bkg[i]->Fill(val1,val2,bkgWeight);
+                        hists2D_tot_sb[i]->Fill(val1,val2,totWeight_sb);
                         hists2D_sig_sb[i]->Fill(val1,val2,sigWeight_sb);
                         hists2D_bkg_sb[i]->Fill(val1,val2,bkgWeight_sb);
                     }
@@ -405,18 +363,18 @@ void makePlots(bool makeTotal){
                 i=mapVarsToPlotToIdx[varToPlot[0]];
                 if (makeTotal)
 	            makeStackedHist(hists1D_truth[i], hists1D_tot[i],hists1D_sig[i],hists1D_bkg[i],
-                            hists1D_sig_sb[i],hists1D_bkg_sb[i],varToPlot[0], "diagnosticPlots"+runTag+"/");
+                            hists1D_tot_sb[i],hists1D_sig_sb[i],hists1D_bkg_sb[i],varToPlot[0], "diagnosticPlots"+runTag+"/");
                 else 
 	            makeStackedHist(hists1D_truth[i], hists1D_tot[i],hists1D_sig[i],hists1D_bkg[i],
-                            hists1D_sig_sb[i],hists1D_bkg_sb[i],varToPlot[0], "diagnosticPlots"+runTag+"/"+fileTag);
+                            hists1D_tot_sb[i],hists1D_sig_sb[i],hists1D_bkg_sb[i],varToPlot[0], "diagnosticPlots"+runTag+"/"+fileTag);
             }
             else if (varToPlot.size()==2){
                 i=mapVarsToPlotToIdx[varToPlot[0]+";"+varToPlot[1]];
                 if (makeTotal)
-                    make2DHistsOnPads(hists2D_truth[i], hists2D_tot[i],hists2D_sig[i],hists2D_bkg[i],hists2D_sig_sb[i],hists2D_bkg_sb[i],
+                    make2DHistsOnPads(hists2D_truth[i], hists2D_tot[i],hists2D_sig[i],hists2D_bkg[i],hists2D_tot_sb[i],hists2D_sig_sb[i],hists2D_bkg_sb[i],
                             varToPlot[0]+"Vs"+varToPlot[1], "diagnosticPlots"+runTag);
                 else
-                    make2DHistsOnPads(hists2D_truth[i], hists2D_tot[i],hists2D_sig[i],hists2D_bkg[i],hists2D_sig_sb[i],hists2D_bkg_sb[i],
+                    make2DHistsOnPads(hists2D_truth[i], hists2D_tot[i],hists2D_sig[i],hists2D_bkg[i],hists2D_tot_sb[i],hists2D_sig_sb[i],hists2D_bkg_sb[i],
                             varToPlot[0]+"Vs"+varToPlot[1], "diagnosticPlots"+runTag+"/"+fileTag);
             }
         }
@@ -433,6 +391,8 @@ void makePlots(bool makeTotal){
             hist->Write();
         for (auto hist: hists1D_bkg)
             hist->Write();
+        for (auto hist: hists1D_tot_sb)
+            hist->Write();
         for (auto hist: hists1D_sig_sb)
             hist->Write();
         for (auto hist: hists1D_bkg_sb)
@@ -442,6 +402,8 @@ void makePlots(bool makeTotal){
         for (auto hist: hists2D_sig)
             hist->Write();
         for (auto hist: hists2D_bkg)
+            hist->Write();
+        for (auto hist: hists2D_tot_sb)
             hist->Write();
         for (auto hist: hists2D_sig_sb)
             hist->Write();

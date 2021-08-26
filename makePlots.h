@@ -8,7 +8,7 @@
 using namespace std;
 
 // This will stack our histograms and make them pretty. 
-void makeStackedHist(TH1F* truth, TH1F* tot, TH1F* sig, TH1F* bkg, TH1F* sig_sb, TH1F* bkg_sb, string name,string baseDir){
+void makeStackedHist(TH1F* truth, TH1F* tot, TH1F* sig, TH1F* bkg, TH1F* tot_sb, TH1F* sig_sb, TH1F* bkg_sb, string name,string baseDir){
     	TCanvas *allCanvases = new TCanvas(name.c_str(),"",1440,900);
         allCanvases->Divide(2,2);
 	TLegend* leg1 = new TLegend(0.8,0.8,1.0,1.0);
@@ -35,7 +35,7 @@ void makeStackedHist(TH1F* truth, TH1F* tot, TH1F* sig, TH1F* bkg, TH1F* sig_sb,
 	leg1->AddEntry(tot,"Tot","l");
 	leg1_sb->AddEntry(bkg_sb,"SB_Bkg","f");
 	leg1_sb->AddEntry(sig_sb,"SB_Sig","l");
-	leg1_sb->AddEntry(tot,"Tot","l");
+	leg1_sb->AddEntry(tot_sb,"Tot","l");
 	leg1_overlay->AddEntry(sig,"Q_Sig","l");
 	leg1_overlay->AddEntry(sig_sb,"SB_Sig","l");
 
@@ -56,14 +56,14 @@ void makeStackedHist(TH1F* truth, TH1F* tot, TH1F* sig, TH1F* bkg, TH1F* sig_sb,
 	stackedHists->GetYaxis()->SetTitle(tot->GetYaxis()->GetTitle());
 
         allCanvases->cd(2);
-	stackedHists_sb->Add(tot,"HIST");
+	stackedHists_sb->Add(tot_sb,"HIST");
 	stackedHists_sb->Add(bkg_sb,"HIST");
 	stackedHists_sb->Add(sig_sb,"HIST");
 	stackedHists_sb->Draw("nostack");
-        stackedHists_sb->SetMaximum(round(1.05*tot->GetMaximum()));
+        stackedHists_sb->SetMaximum(round(1.05*tot_sb->GetMaximum()));
 	leg1_sb->Draw();
-	stackedHists_sb->GetXaxis()->SetTitle(tot->GetXaxis()->GetTitle());
-	stackedHists_sb->GetYaxis()->SetTitle(tot->GetYaxis()->GetTitle());
+	stackedHists_sb->GetXaxis()->SetTitle(tot_sb->GetXaxis()->GetTitle());
+	stackedHists_sb->GetYaxis()->SetTitle(tot_sb->GetYaxis()->GetTitle());
 
         allCanvases->cd(3);
         if (haveTruth)
@@ -71,7 +71,14 @@ void makeStackedHist(TH1F* truth, TH1F* tot, TH1F* sig, TH1F* bkg, TH1F* sig_sb,
         stackedHists_overlay->Add(sig,"HIST");
         stackedHists_overlay->Add(sig_sb,"HIST");
 	stackedHists_overlay->Draw("nostack");
-        stackedHists_overlay->SetMaximum(round(1.05*sig->GetMaximum()));
+        float max=0;
+        if ( (sig->GetMaximum() > sig_sb->GetMaximum()) && (sig->GetMaximum() > truth->GetMaximum()) )
+            max=sig->GetMaximum();
+        else if ( (sig_sb->GetMaximum() > sig->GetMaximum()) && (sig_sb->GetMaximum() > truth->GetMaximum()) )
+            max=sig_sb->GetMaximum();
+        else
+            max=truth->GetMaximum();
+        stackedHists_overlay->SetMaximum(round(1.05*max));
 	stackedHists_overlay->GetXaxis()->SetTitle(tot->GetXaxis()->GetTitle());
 	stackedHists_overlay->GetYaxis()->SetTitle(tot->GetYaxis()->GetTitle());
         leg1_overlay->Draw();
@@ -99,7 +106,7 @@ void makeStackedHist(TH1F* truth, TH1F* tot, TH1F* sig, TH1F* bkg, TH1F* sig_sb,
 	allCanvases->SaveAs((baseDir+"/"+name+".png").c_str());
 }
 
-void make2DHistsOnPads(TH2F* truth, TH2F* tot, TH2F* sig, TH2F* bkg, TH2F* sig_sb, TH2F* bkg_sb, string name,string baseDir){
+void make2DHistsOnPads(TH2F* truth, TH2F* tot, TH2F* sig, TH2F* bkg, TH2F* tot_sb, TH2F* sig_sb, TH2F* bkg_sb, string name,string baseDir){
     	TCanvas *allCanvases = new TCanvas(name.c_str(),"",1440,900);
         allCanvases->Divide(3,2);
 	TLegend* leg1 = new TLegend(0.8,0.8,1.0,1.0);
@@ -114,6 +121,8 @@ void make2DHistsOnPads(TH2F* truth, TH2F* tot, TH2F* sig, TH2F* bkg, TH2F* sig_s
 
         allCanvases->cd(3);
         bkg->Draw("COLZ");
+
+        // WE DO NOT SHOW TOT_SB IN FAVOR OF TRUTH
 
         allCanvases->cd(4);
         truth->Draw("COLZ");

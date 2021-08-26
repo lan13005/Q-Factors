@@ -52,21 +52,23 @@ rootFileLocs=[
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "AMO")
 
         ("zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root",
-            "tree_4g_flat", "flatEtapi_b1_test")
+            "tree_4g_flat", "flatEtapi_b1_test_4_2")
+#        ("/d/grid17/ln16/q-values-3/logs/flatEtapi_b1_test_4_1111/postQVal_flatTree_flatEtapi_b1_test_4_1111.root",
+#            "tree_4g_flat", "flatEtapi_b1_test_4_Meta_Mpi0")
+
 #        ("degALL_data_2017_mEllipse_8288_tLT1_chi13_omegacut_treeFlat_DSelector.root", 
 #            "tree_4g_flat", "2017_2D")
         ]
 
 _SET_fitWeights="AccWeight" 
-_SET_altWeights="weightBS" 
+_SET_altWeights="AccWeight;weightBS" 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
 _SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3" 
-#_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj"
-_SET_discrimVars="Meta"#;Meta" 
-_SET_nProcess=36
+_SET_discrimVars="Meta"#
+_SET_nProcess=1
 _SET_kDim=400
-_SET_nentries=-1
+_SET_nentries=500
 _SET_numberEventsToSavePerProcess=2
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 
@@ -231,7 +233,7 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
     changeDims=["sed","-i","s@const int altWeightsDim=.*;@const int altWeightsDim="+str(len(_SET_altWeights.split(";")))+";@g","configSettings.h"]
     print(" ".join(changeDims))
     subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
-    
+
     # the distance calculation needs dim to know the dimension of phase space. Before we compile it the script needs to know so we have replace before compilation 
     print("Deleting main and recompiling it")
     subprocess.Popen("rm main", shell=True,  stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait()

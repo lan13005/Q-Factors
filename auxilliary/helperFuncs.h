@@ -230,6 +230,8 @@ void outputMemUsage(ProcInfo_t pinfo, string contextString){
 }
 
 string setBranchAddress(TTree* tree, string variable, Long64_t* value_i, float* value_f, double* value){
+    //tree->Print();
+    cout << "setBranchAddress: " << variable << endl;
     string typeName=tree->GetLeaf(variable.c_str())->GetTypeName();
     if (typeName=="Long64_t"){
         cout << "Setting Branch with data type Long64 " << variable << endl; 
@@ -269,6 +271,15 @@ int getIndex(vector<string> v, string K)
         return it-v.begin();
     else
         return -1;
+}
+
+string replace_str(string s, string search_str, string replace_str){
+    std::string::size_type n = 0;
+    while ( ( n = s.find( search_str, n ) ) != std::string::npos ){
+        s.replace( n, search_str.size(), replace_str );
+        n += replace_str.size();
+    }
+    return s;
 }
 
 #endif

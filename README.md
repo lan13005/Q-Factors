@@ -1,4 +1,5 @@
 ## Updates:
+08/24/2011: Weights allow semicolon separated branch names
 08/11/2011: Reogranization of the folders to allow for looping over all potential subsets of phase space variables. Useful in determining final phase space. makePlots also draws 2D matched thrown distributions if it can
 
 ## Introduction to Q-Factor sideband subtraction at GlueX

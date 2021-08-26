@@ -53,16 +53,25 @@ class QFactorAnalysis{
                 // will hold that information
                 std::vector<float> sigFracs;
 
-                // initialize vectors to hold the discriminating and phase space variables
-                parseVarString parseDiscrimVars;
-	        parseVarString parsePhaseSpace;
-                parseVarString parseFitWeightVars;
                 parseVarString parseEventsToSave;
-                std::vector<std::vector<float>> discrimVars; // holds all the data for discriminating variables
-                std::vector<std::vector<float>> phaseSpaceVars; // holds all the data for the phase space varialbes
+                // initialize vectors to hold the discriminating and phase space variables
+                std::vector<string> branchesToGet;
+                parseVarString parsePhaseSpace; // Parse the semicolon separated variable string
+                parseVarString parseDiscrimVars;
+                parseVarString parseFitWeightVars;
+                map<string,int> nameToIdx; // maps a branch (string) to the index inside values, values is a vector of vectors 
+                int phaseIdxs[phaseSpaceDim]; // to avoid rereading we will save the indicies
+                int discrimIdxs[discrimVarDim];
+                int fitWeightIdxs[fitWeightsDim];
+                vector<string> typeNames;
+                // will be used as the address to store the inputs from GetEntry
+                vector<double> value; 
+                vector<float> value_f;
+                vector<Long64_t> value_l;
+                vector<vector<float>> values; // this will contain all the variable values in RAM
 
                 float weight;
-		std::vector<std::vector<float>> fitWeights; 
+		//std::vector<std::vector<float>> fitWeights; 
                 // Not all combinations will be a valid pairing. Suppose we only care about spectroscopically unique pairs, 
                 // then we can fill phasePoint2PotentialNeighbor with only unique combos.
 		std::vector<int> phasePoint2PotentialNeighbor; 
