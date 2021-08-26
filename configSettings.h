@@ -38,7 +38,7 @@ bool override_nentries=1;
 bool saveEventLevelProcessSpeed=1;
 bool saveBranchOfNeighbors=1;
 bool saveMemUsage=1;
-bool verbose_outputDistCalc=false;
+bool verbose_outputDistCalc=true;
 // DO NOT MODIFY THIS SECTION. GETS OVERWRITTEN BY RUN.PY
 // DO NOT MODIFY THIS SECTION. GETS OVERWRITTEN BY RUN.PY
 // ------------------------------------------------------

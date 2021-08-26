@@ -161,6 +161,7 @@ class fitManager
                 // w.getVal() but the dataset will be weighted: https://root-forum.cern.ch/t/fit-to-a-weighted-unbinned-data-set/33495
                 rooData->add(RooArgSet(*x,*w),weight);
             }
+            keptNeighbor=true;
             return keptNeighbor;
         }
 

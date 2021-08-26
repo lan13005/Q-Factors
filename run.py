@@ -66,9 +66,9 @@ _SET_altWeights="AccWeight;weightBS"
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
 _SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3" 
 _SET_discrimVars="Meta"#
-_SET_nProcess=1
+_SET_nProcess=36
 _SET_kDim=400
-_SET_nentries=500
+_SET_nentries=-1
 _SET_numberEventsToSavePerProcess=2
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 

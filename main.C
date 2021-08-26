@@ -36,7 +36,7 @@ void QFactorAnalysis::initialize(string rootFileLoc, string rootTreeName){
             if (std::find(branchesToGet.begin(), branchesToGet.end(), s) == branchesToGet.end())
                 branchesToGet.push_back(s);
         }
-        int nbranches=branchesToGet.size();
+        nbranches=branchesToGet.size();
         value=vector<Double_t>(nbranches,0);
         value_f=vector<Float_t>(nbranches,0);
         value_l=vector<Long64_t>(nbranches,0);
@@ -49,11 +49,11 @@ void QFactorAnalysis::initialize(string rootFileLoc, string rootTreeName){
             typeName=setBranchAddress(dataTree, s, &value_l[ibranch], &value_f[ibranch], &value[ibranch]);
             typeNames.push_back(typeName);
             nameToIdx[s]=ibranch;
-            values.push_back(vector<float>{});
-            values[ibranch].reserve(nentries);
+            //values.push_back(vector<float>{});
+            //values[ibranch].reserve(nentries);
             ++ibranch;
         }
-        //values.reserve(nentries*nbranches);
+        values.reserve(nentries*nbranches);
 
 	phasePoint2PotentialNeighbor.reserve(nentries);
 
@@ -83,12 +83,25 @@ void QFactorAnalysis::loadData(){
             exit(0);
         }
         // Since we will loop over these indicies a lot it makes sense to save the locations and not do a lookup everytime
-	for ( int iVar=0; iVar<phaseSpaceDim; ++iVar )
+        cout << "number of branchesToGet: " << nbranches << " with indicies split as follows..." << endl;
+        cout << "phase idxs: " << endl;
+	for ( int iVar=0; iVar<phaseSpaceDim; ++iVar ){
             phaseIdxs[iVar]=nameToIdx[parsePhaseSpace.varStringSet[iVar]];
-	for ( int iVar=0; iVar<discrimVarDim; ++iVar )
+            cout << phaseIdxs[iVar] << ", ";
+        }
+        cout << endl;
+        cout << "discrim idxs: " << endl;
+	for ( int iVar=0; iVar<discrimVarDim; ++iVar ){
             discrimIdxs[iVar]=nameToIdx[parseDiscrimVars.varStringSet[iVar]];
-	for ( int iVar=0; iVar<fitWeightsDim; ++iVar )
+            cout << discrimIdxs[iVar] << ", ";
+        }
+        cout << endl;
+        cout << "fitWeight idxs: " << endl;
+	for ( int iVar=0; iVar<fitWeightsDim; ++iVar ){
             fitWeightIdxs[iVar]=nameToIdx[parseFitWeightVars.varStringSet[iVar]];
+            cout << fitWeightIdxs[iVar] << ", ";
+        }
+        cout << endl;
 
         //// Create space for the underlying data
         //double phaseSpaceVar[phaseSpaceDim];
@@ -249,8 +262,8 @@ void QFactorAnalysis::loadData(){
                     if(typeNames[j]=="Long64_t"){
                         value_f[j]=value_l[j]; 
                     }
-                    values[j].push_back(value_f[j]);
-                    //values[j][ientry]=value_f[j];
+                    //values[j].push_back(value_f[j]);
+                    values[ientry*nbranches+j]=value_f[j];
                 }
 	}
 
@@ -258,9 +271,14 @@ void QFactorAnalysis::loadData(){
             outputMemUsage(pinfo,"After loading data: ");
 
 	if ( verbose_outputDistCalc ) {
-	    cout << "Before standarization the first nentries of values[0]" << endl;
+	    cout << "Before standarization the first nentries of values" << endl;
 	    for ( int ientry=0 ; ientry < nentries; ientry++){
-	        cout << values[0][ientry] << endl;
+                for (int phaseIdx:phaseIdxs)
+	            cout << values[ientry*nbranches+phaseIdx] << ", ";
+                // If you want to see all the branches before and after standardization to check if scaling occurs properly
+                //for (int iVar=0; iVar<nbranches; ++iVar)
+	        //    cout << values[ientry*nbranches+iVar] << ", ";
+                cout << endl;
 	    }
 	}
 
@@ -292,17 +310,22 @@ void QFactorAnalysis::loadData(){
 	for (int iVar=0; iVar<phaseSpaceDim; ++iVar){
             if(standardizationType=="range"){
                 //standarizationClass.rangeStandardization(phaseSpaceVars[iVar],nentries);
-                standarizationClass.rangeStandardization(values[phaseIdxs[iVar]],nentries);
+                standarizationClass.rangeStandardization(values,phaseIdxs[iVar],nentries,nbranches);
             }
             else if (standardizationType=="std"){
-                standarizationClass.stdevStandardization(values[phaseIdxs[iVar]],nentries);
+                standarizationClass.stdevStandardization(values,phaseIdxs[iVar],nentries,nbranches);
             }
         }
 
 	if ( verbose_outputDistCalc ) {
-	    cout << "After standarization the first nentries of values[0]" << endl;
+	    cout << "After standarization the first nentries of values" << endl;
 	    for ( int ientry=0 ; ientry < nentries; ientry++){
-	        cout << values[0][ientry] << endl;
+                for (int phaseIdx:phaseIdxs)
+	            cout << values[ientry*nbranches+phaseIdx] << ", ";
+                // If you want to see all the branches before and after standardization to check if scaling occurs properly
+                //for (int iVar=0; iVar<nbranches; ++iVar)
+	        //    cout << values[ientry*nbranches+iVar] << ", ";
+                cout << endl;
 	    }
 	}
         gSystem->GetProcInfo(&pinfo);
@@ -498,14 +521,13 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 		//	phasePoint1[iVar] = phaseSpaceVars[iVar][ientry];
 		//}
 		for ( int iVar=0; iVar<phaseSpaceDim; ++iVar ){
-                    phasePoint1[iVar] = values[phaseIdxs[iVar]][ientry]; 
+                    phasePoint1[iVar] = values[ientry*nbranches+phaseIdxs[iVar]]; 
                 }
                 
                 // This is where we can implemenet a fit range effectively. Since the set of neighbors ultimately
                 //   determine the fit range we can restrict the set of neighbors to be within some region and fit
                 //   over the full range
                 vector<int> _phasePoint2PotentialNeighbor;
-
 
                 int nPotentialNeighbors=(int)phasePoint2PotentialNeighbor.size();
                 vector<int> phasePoint2PotentailNeighbor_BS;
@@ -515,7 +537,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                 //for ( int iVar=0; iVar<discrimVarDim; ++iVar)
                 //    currentValues[iVar] = discrimVars[iVar][ientry];
 		for ( int iVar=0; iVar<discrimVarDim; ++iVar ){
-                    currentValues[iVar] = values[discrimIdxs[iVar]][ientry]; 
+                    currentValues[iVar] = values[ientry*nbranches+discrimIdxs[iVar]]; 
                 }
 
                 // --------------------------------------------
@@ -572,7 +594,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 		        for (int jentry : phasePoint2PotentailNeighbor_BS) {  
                             if (jentry == ientry){ continue; } 
 		            for ( int iVar=0; iVar<phaseSpaceDim; ++iVar ){
-                                phasePoint2[iVar] = values[phaseIdxs[iVar]][jentry];
+                                phasePoint2[iVar] = values[jentry*nbranches+phaseIdxs[iVar]];
                             }
 		            distance = calc_distance(phaseSpaceDim,phasePoint1,phasePoint2,verbose_outputDistCalc);
 		            if ( verbose_outputDistCalc ) { cout << "event (i,j)=(" << ientry << "," << jentry << ") has distance=" << distance << endl;} 
@@ -596,14 +618,14 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                             weight=1;
                         }
                         else {
-                            weight=values[fitWeightIdxs[0]][newPair.second];
+                            weight=values[newPair.second*nbranches+fitWeightIdxs[0]];
                             for (int iVar=1; iVar<fitWeightsDim; ++iVar)
-                                weight *= values[fitWeightIdxs[iVar]][newPair.second];
+                                weight*=values[newPair.second*nbranches+fitWeightIdxs[iVar]];
                         }
 
                         // Load neighborValues
                         for (int iVar=0; iVar<discrimVarDim; ++iVar)
-                            neighborValues[iVar] =  values[discrimIdxs[iVar]][newPair.second];
+                            neighborValues[iVar] = values[newPair.second*nbranches+discrimIdxs[iVar]]; 
 
                         bool keptNeighbor = fm.insert(neighborValues,weight);
 
@@ -615,13 +637,13 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                         //if (verbose_outputDistCalc){
                             if (discrimVarDim==1){
 		                cout << "(neighbor, distance, idx)=(" << iNeighbor << ", " << newPair.first << ", " << newPair.second << ") with x = " << 
-                                    values[discrimIdxs[0]][newPair.second] << 
+                                    values[newPair.second*nbranches+discrimIdxs[0]] << 
                                     " and weight= " << weight << endl; 
                             }
                             if (discrimVarDim==2){
 		                cout << "(" << newPair.first << ", " << newPair.second << ") with x,y = " << 
-                                    values[discrimIdxs[0]][newPair.second] << 
-                                    values[discrimIdxs[1]][newPair.second] << 
+                                    values[newPair.second*nbranches+discrimIdxs[0]] << 
+                                    values[newPair.second*nbranches+discrimIdxs[1]] << 
                                     " and weight= " << weight << endl; 
                             }
                         //}

@@ -54,8 +54,11 @@ class QFactorAnalysis{
                 std::vector<float> sigFracs;
 
                 parseVarString parseEventsToSave;
+                // ///////////////////////////////////////////////////////////////////////
                 // initialize vectors to hold the discriminating and phase space variables
-                std::vector<string> branchesToGet;
+                // ///////////////////////////////////////////////////////////////////////
+                std::vector<string> branchesToGet; 
+                int nbranches; // number of branches to get
                 parseVarString parsePhaseSpace; // Parse the semicolon separated variable string
                 parseVarString parseDiscrimVars;
                 parseVarString parseFitWeightVars;
@@ -64,14 +67,12 @@ class QFactorAnalysis{
                 int discrimIdxs[discrimVarDim];
                 int fitWeightIdxs[fitWeightsDim];
                 vector<string> typeNames;
-                // will be used as the address to store the inputs from GetEntry
-                vector<double> value; 
+                vector<double> value; // will be used as the address to store the inputs from GetEntry 
                 vector<float> value_f;
                 vector<Long64_t> value_l;
-                vector<vector<float>> values; // this will contain all the variable values in RAM
+                vector<float> values; // this will contain all the variable values in RAM
 
                 float weight;
-		//std::vector<std::vector<float>> fitWeights; 
                 // Not all combinations will be a valid pairing. Suppose we only care about spectroscopically unique pairs, 
                 // then we can fill phasePoint2PotentialNeighbor with only unique combos.
 		std::vector<int> phasePoint2PotentialNeighbor; 

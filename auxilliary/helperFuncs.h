@@ -80,36 +80,36 @@ class standardizeArray{
     		float max_inputVector;
          	float min_inputVector;
 		
-		void rangeStandardization(std::vector<float> &inputVector, long long nentries){
+		void rangeStandardization(std::vector<float> &inputVector, int varIdx, long long nentries, int nbranches){
     			max_inputVector = DBL_MIN;
          		min_inputVector = DBL_MAX;
                         std::cout << "\nStarting range std" << std::endl;
 			for (int ientry=0; ientry<nentries; ++ientry){
-				if (inputVector[ientry] > max_inputVector){
-					max_inputVector = inputVector[ientry];
+				if (inputVector[ientry*nbranches+varIdx] > max_inputVector){
+					max_inputVector = inputVector[ientry*nbranches+varIdx];
 				}
-				if (inputVector[ientry] < min_inputVector){
-					min_inputVector = inputVector[ientry];
+				if (inputVector[ientry]*nbranches+varIdx < min_inputVector){
+					min_inputVector = inputVector[ientry*nbranches+varIdx];
 				}
 			}
 			for (int ientry=0; ientry<nentries; ++ientry){
-				inputVector[ientry] = (inputVector[ientry]-min_inputVector)/(max_inputVector-min_inputVector);
+				inputVector[ientry*nbranches+varIdx] = (inputVector[ientry*nbranches+varIdx]-min_inputVector)/(max_inputVector-min_inputVector);
 			}
                         std::cout << "Max,min: " << max_inputVector << "," << min_inputVector << std::endl;
                         std::cout << "--Finished Range standardizing " << std::endl;
 		}
 		
-		float calcStd(std::vector<float> &inputVector, long long nentries){
+		float calcStd(std::vector<float> &inputVector, int varIdx, long long nentries, int nbranches){
 			float local_std=0;
 			float diff=0;
 			float mean=0;
-			for (int i=0; i<nentries; ++i){
-			    mean+=inputVector[i];
+			for (int ientry=0; ientry<nentries; ++ientry){
+			    mean+=inputVector[ientry*nbranches+varIdx];
 			} 
 			mean/=nentries;
 			for (int ientry=0; ientry<nentries; ++ientry){
                                 //std::cout << "mean: " << mean << std::endl;
-				diff = (inputVector[ientry]-mean);
+				diff = (inputVector[ientry*nbranches+varIdx]-mean);
                                 //std::cout << "diff: " << diff << std::endl;
 				local_std += diff*diff;
 			}
@@ -118,10 +118,10 @@ class standardizeArray{
                         std::cout << "--Finished Std standardizing " << std::endl;
 			return sqrt(local_std);
 		}
-		void stdevStandardization(std::vector<float> &inputVector, long long nentries){
-			float std = calcStd(inputVector, nentries);
+		void stdevStandardization(std::vector<float> &inputVector, int varIdx, long long nentries, int nbranches){
+			float std = calcStd(inputVector, varIdx, nentries, nbranches);
 			for (int ientry=0; ientry < nentries; ++ientry){
-				inputVector[ientry] = inputVector[ientry]/std; 
+				inputVector[ientry*nbranches+varIdx] = inputVector[ientry*nbranches+varIdx]/std; 
 			} 
                         std::cout << "Finished Stdev Standardization" << endl;
 		}
@@ -136,7 +136,7 @@ float calc_distance( int dim, float* phaseSpace_1, float* phaseSpace_2, bool ver
 		diff = phaseSpace_1[i]-phaseSpace_2[i];
 		sum += abs(diff);//diff*diff;
                 if(verbose_outputDistCalc){
-                    std::cout << "phasePoint1["<<i<<"]="<<phaseSpace_1[i]<<", phasePoint2["<<i<<"]="<<phaseSpace_2[i]<<" --- squared sum=" << diff*diff << "---- total so far="<<sum<<std::endl;
+                    std::cout << "phasePoint1["<<i<<"]="<<phaseSpace_1[i]<<", phasePoint2["<<i<<"]="<<phaseSpace_2[i]<<" --- abs distance=" << abs(diff) << "---- total so far="<<sum<<std::endl;
 		}
 	}
 	return sum;
