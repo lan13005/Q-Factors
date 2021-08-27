@@ -54,7 +54,7 @@ rootFileLocs=[
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "AMO")
 
         ("zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root",
-            "tree_4g_flat", "flatEtapi_b1_test_6")
+            "tree_4g_flat", "flatEtapi_b1_Meta")
 #        ("/d/grid17/ln16/q-values-3/logs/flatEtapi_b1_test_4_1111/postQVal_flatTree_flatEtapi_b1_test_4_1111.root",
 #            "tree_4g_flat", "flatEtapi_b1_test_4_Meta_Mpi0")
 

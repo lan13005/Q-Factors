@@ -10,7 +10,7 @@ using namespace std;
 string cwd="/d/grid17/ln16/q-values-3";
 string rootFileLoc="zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root";
 string rootTreeName="tree_4g_flat";
-string fileTag="flatEtapi_b1_test_6_1111";
+string fileTag="flatEtapi_b1_Meta_1111";
 string runTag="";
 string s_fitWeight="AccWeight";
 string s_altWeight="AccWeight;weightBS";
