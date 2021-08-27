@@ -20,15 +20,22 @@ void QFactorAnalysis::initialize(string rootFileLoc, string rootTreeName){
 
 	// Import all the data to RAM instead of reading from root file
         // First we should reserve the space so there is no resizing of the vectors.
+	parseNeighborReqs.parseString(s_neighborReqs);
+
         cout << "\nSET BRANCH ADDRESSES OF REQUESTED BRANCHES: "<< endl;
 	parsePhaseSpace.parseString(s_phaseVar);
 	parseDiscrimVars.parseString(s_discrimVar);
+	parseExtraVars.parseString(s_extraVar);
 	parseFitWeightVars.parseString(s_fitWeight);
         for (auto s: parsePhaseSpace.varStringSet){
             if (std::find(branchesToGet.begin(), branchesToGet.end(), s) == branchesToGet.end())
                 branchesToGet.push_back(s);
         }
         for (auto s: parseDiscrimVars.varStringSet){
+            if (std::find(branchesToGet.begin(), branchesToGet.end(), s) == branchesToGet.end())
+                branchesToGet.push_back(s);
+        }
+        for (auto s: parseExtraVars.varStringSet){
             if (std::find(branchesToGet.begin(), branchesToGet.end(), s) == branchesToGet.end())
                 branchesToGet.push_back(s);
         }
@@ -83,7 +90,7 @@ void QFactorAnalysis::loadData(){
             exit(0);
         }
         // Since we will loop over these indicies a lot it makes sense to save the locations and not do a lookup everytime
-        cout << "number of branchesToGet: " << nbranches << " with indicies split as follows..." << endl;
+        cout << "\nnumber of branchesToGet: " << nbranches << " with indicies split as follows..." << endl;
         cout << "phase idxs: " << endl;
 	for ( int iVar=0; iVar<phaseSpaceDim; ++iVar ){
             phaseIdxs[iVar]=nameToIdx[parsePhaseSpace.varStringSet[iVar]];
@@ -96,119 +103,18 @@ void QFactorAnalysis::loadData(){
             cout << discrimIdxs[iVar] << ", ";
         }
         cout << endl;
+        cout << "extra idxs: " << endl;
+	for ( int iVar=0; iVar<extraVarDim; ++iVar ){
+            extraIdxs[iVar]=nameToIdx[parseExtraVars.varStringSet[iVar]];
+            cout << extraIdxs[iVar] << ", ";
+        }
+        cout << endl;
         cout << "fitWeight idxs: " << endl;
 	for ( int iVar=0; iVar<fitWeightsDim; ++iVar ){
             fitWeightIdxs[iVar]=nameToIdx[parseFitWeightVars.varStringSet[iVar]];
             cout << fitWeightIdxs[iVar] << ", ";
         }
-        cout << endl;
-
-        //// Create space for the underlying data
-        //double phaseSpaceVar[phaseSpaceDim];
-        //double discrimVar[discrimVarDim];
-	//double fitWeight[fitWeightsDim];
-        //float phaseSpaceVar_f[phaseSpaceDim];
-        //float discrimVar_f[discrimVarDim];
-	//float fitWeight_f[fitWeightsDim];
-        //Long64_t phaseSpaceVar_l[phaseSpaceDim];
-        //Long64_t discrimVar_l[discrimVarDim];
-        //Long64_t fitWeight_l[fitWeightsDim];
-        //string phaseSpaceDataTypes[phaseSpaceDim];
-        //string discrimVarDataTypes[discrimVarDim];  
-        //string fitWeightDataTypes[fitWeightsDim];
-
-        //// Create ptrs to all the underlying data
-        //double* ptr_phaseSpaceVar[phaseSpaceDim];
-        //double* ptr_discrimVar[discrimVarDim];
-	//double* ptr_fitWeight[fitWeightsDim];
-        //float* ptr_phaseSpaceVar_f[phaseSpaceDim];
-        //float* ptr_discrimVar_f[discrimVarDim];
-	//float* ptr_fitWeight_f[fitWeightsDim];
-        //Long64_t* ptr_phaseSpaceVar_l[phaseSpaceDim];
-        //Long64_t* ptr_discrimVar_l[discrimVarDim];
-        //Long64_t* ptr_fitWeight_l[fitWeightsDim];
-
-        //// Match the ptrs to the underlying data
-        //for (int iVar=0; iVar<phaseSpaceDim; ++iVar){
-        //    ptr_phaseSpaceVar[iVar] = &phaseSpaceVar[iVar];
-        //    ptr_phaseSpaceVar_f[iVar] = &phaseSpaceVar_f[iVar];
-        //    ptr_phaseSpaceVar_l[iVar] = &phaseSpaceVar_l[iVar];
-        //}
-        //for (int iVar=0; iVar<discrimVarDim; ++iVar){
-        //    ptr_discrimVar[iVar] = &discrimVar[iVar];
-        //    ptr_discrimVar_f[iVar] = &discrimVar_f[iVar];
-        //    ptr_discrimVar_l[iVar] = &discrimVar_l[iVar];
-        //}
-        //for (int iVar=0; iVar<fitWeightsDim; ++iVar){
-        //    ptr_fitWeight[iVar] = &fitWeight[iVar];
-        //    ptr_fitWeight_f[iVar] = &fitWeight_f[iVar];
-        //    ptr_fitWeight_l[iVar] = &fitWeight_l[iVar];
-        //}
-
-        //// Resolve any pointer conflicts
-	//parsePhaseSpace.parseString(s_phaseVar);
-	//parseDiscrimVars.parseString(s_discrimVar);
-	//parseFitWeightVars.parseString(s_fitWeight);
-        //auto intersect_fit_discrim = intersection(parseFitWeightVars.varStringSet,parseDiscrimVars.varStringSet);
-        //auto intersect_discrim_phase = intersection(parseDiscrimVars.varStringSet,parsePhaseSpace.varStringSet);
-        //auto intersect_fit_phase = intersection(parseFitWeightVars.varStringSet,parsePhaseSpace.varStringSet);
-        //for (auto s: intersect_fit_discrim){
-        //    int iVar_fit=getIndex(parseFitWeightVars.varStringSet,s); 
-        //    int iVar_discrim=getIndex(parseDiscrimVars.varStringSet,s); 
-        //    ptr_discrimVar[iVar_discrim]=ptr_fitWeight[iVar_fit]; 
-        //    ptr_discrimVar_f[iVar_discrim]=ptr_fitWeight_f[iVar_fit]; 
-        //    ptr_discrimVar_l[iVar_discrim]=ptr_fitWeight_l[iVar_fit]; 
-        //    cout << "insersecting variable between fit and discrim vars: " << s << endl;
-        //}
-        //for (auto s: intersect_discrim_phase){
-        //    int iVar_discrim=getIndex(parseDiscrimVars.varStringSet,s); 
-        //    int iVar_phase=getIndex(parsePhaseSpace.varStringSet,s); 
-        //    ptr_phaseSpaceVar[iVar_phase]=ptr_discrimVar[iVar_discrim]; 
-        //    ptr_phaseSpaceVar_f[iVar_phase]=ptr_discrimVar_f[iVar_discrim]; 
-        //    ptr_phaseSpaceVar_l[iVar_phase]=ptr_discrimVar_l[iVar_discrim]; 
-        //    cout << "insersecting variable between discrim and phase space vars: " << s << endl;
-        //}
-        //for (auto s: intersect_fit_phase){
-        //    int iVar_phase=getIndex(parsePhaseSpace.varStringSet,s); 
-        //    int iVar_fit=getIndex(parseFitWeightVars.varStringSet,s); 
-        //    ptr_fitWeight[iVar_fit]=ptr_phaseSpaceVar[iVar_phase]; 
-        //    ptr_fitWeight_f[iVar_fit]=ptr_phaseSpaceVar_f[iVar_phase]; 
-        //    ptr_fitWeight_l[iVar_fit]=ptr_phaseSpaceVar_l[iVar_phase]; 
-        //    cout << "insersecting variable between fit and phase space vars: " << s << endl;
-        //}
-
-	//// Set branch addresses so we can read in the data
-        //string typeName; // temporary storage of the type returned by setBranchAddress function
-
-        //dataTree->SetBranchStatus("*",0);
-        //if ( parsePhaseSpace.varStringSet.size() != phaseSpaceDim ) { cout << "Uh-oh something went wrong. varString size not right size" << endl; }
-	//for (int iVar=0; iVar<phaseSpaceDim; ++iVar){
-        //    cout << "(phase branch) ";
-        //    dataTree->SetBranchStatus(parsePhaseSpace.varStringSet[iVar].c_str(),1);
-        //    typeName=setBranchAddress(dataTree, parsePhaseSpace.varStringSet[iVar], ptr_phaseSpaceVar_l[iVar], ptr_phaseSpaceVar_f[iVar], ptr_phaseSpaceVar[iVar]);
-        //    phaseSpaceDataTypes[iVar]=typeName;
-        //}
-        //if ( parseDiscrimVars.varStringSet.size() != discrimVarDim ) { cout << "Uh-oh something went wrong. discrimVar string size not right size" << endl; }
-	//for (int iVar=0; iVar<discrimVarDim; ++iVar){
-        //    cout << "(discrim branch) ";
-        //    dataTree->SetBranchStatus(parseDiscrimVars.varStringSet[iVar].c_str(),1);
-        //    typeName=setBranchAddress(dataTree, parseDiscrimVars.varStringSet[iVar], ptr_discrimVar_l[iVar], ptr_discrimVar_f[iVar], ptr_discrimVar[iVar]);
-        //    discrimVarDataTypes[iVar]=typeName;
-        //}
-        //if ( parseFitWeightVars.varStringSet.size() != fitWeightsDim ) { cout << "Uh-oh something went wrong. fitWeights string size not right size" << endl; }
-        //if ( (fitWeightsDim==1)*(parseFitWeightVars.varStringSet[0]=="none") ){
-        //    fitWeight_f[0]=1;
-        //    fitWeightDataTypes[0]="Float_t"; // we wont be using weights, just keep as a value of 1 with datatype float
-        //    cout << "No additional weights used" << endl;
-        //}
-        //else{
-	//    for (int iVar=0; iVar<fitWeightsDim; ++iVar){
-        //        cout << "(weight branch) ";
-        //        dataTree->SetBranchStatus(parseFitWeightVars.varStringSet[iVar].c_str(),1);
-        //        typeName=setBranchAddress(dataTree, parseFitWeightVars.varStringSet[iVar], ptr_fitWeight_l[iVar], ptr_fitWeight_f[iVar], ptr_fitWeight[iVar]);
-        //        fitWeightDataTypes[iVar]=typeName;
-        //    }
-        //}
+        cout << "\n" << endl;
 
 
         /////////////////////////////////////////////////////////////
@@ -220,39 +126,6 @@ void QFactorAnalysis::loadData(){
 	for (Long64_t ientry=0; ientry<nentries; ientry++)
 	{
 		dataTree->GetEntry(ientry);
-	        //for (int iVar=0; iVar<phaseSpaceDim; ++iVar){
-                //    if (phaseSpaceDataTypes[iVar]=="Float_t")
-                //        phaseSpaceVars[iVar].push_back();
-                //    if (phaseSpaceDataTypes[iVar]=="Double_t")
-                //        phaseSpaceVars[iVar].push_back(*ptr_phaseSpaceVar[iVar]);
-                //    if (phaseSpaceDataTypes[iVar]=="Long64_t")
-                //        phaseSpaceVars[iVar].push_back(*ptr_phaseSpaceVar_l[iVar]);
-                //    //if (saveMemUsage)
-                //    //    outputMemUsage(pinfo,"loaded phaseSpace iVar "+to_string(iVar)+": ");
-                //    //cout << "phaseVar" << iVar << " " << phaseSpaceVars[iVar][ientry] << endl;
-                //}
-	        //for (int iVar=0; iVar<discrimVarDim; ++iVar){
-                //    if (discrimVarDataTypes[iVar]=="Float_t")
-                //        discrimVars[iVar].push_back(*ptr_discrimVar_f[iVar]);
-                //    if (discrimVarDataTypes[iVar]=="Double_t")
-                //        discrimVars[iVar].push_back(*ptr_discrimVar[iVar]);
-                //    if (discrimVarDataTypes[iVar]=="Long64_t")
-                //        discrimVars[iVar].push_back(*ptr_discrimVar_l[iVar]);
-                //    //cout << "discrimVar" << iVar << " " << discrimVars[iVar][ientry] << endl;
-                //    //if (saveMemUsage)
-                //    //    outputMemUsage(pinfo,"loaded discrimVar iVar "+to_string(iVar)+": ");
-                //}
-	        //for (int iVar=0; iVar<fitWeightsDim; ++iVar){
-                //    if (fitWeightDataTypes[iVar]=="Float_t")
-	        //        fitWeights[iVar].push_back(*ptr_fitWeight_f[iVar]);
-                //    if (fitWeightDataTypes[iVar]=="Double_t")
-	        //        fitWeights[iVar].push_back(*ptr_fitWeight[iVar]);
-                //    if (fitWeightDataTypes[iVar]=="Long64_t")
-	        //        fitWeights[iVar].push_back(*ptr_fitWeight_l[iVar]);
-                //    //cout << "fitWeight" << iVar << " " << fitWeights[iVar][ientry] << endl;
-                //    //if (saveMemUsage)
-                //    //    outputMemUsage(pinfo,"loaded fitWeight: ");
-                //}
 
                 for (int j=0; j<(int)branchesToGet.size(); ++j){
                     // if(typeNames[j]=="Float_t") we do nothing
@@ -262,8 +135,8 @@ void QFactorAnalysis::loadData(){
                     if(typeNames[j]=="Long64_t"){
                         value_f[j]=value_l[j]; 
                     }
-                    //values[j].push_back(value_f[j]);
-                    values[ientry*nbranches+j]=value_f[j];
+                    //values[ientry*nbranches+j]=value_f[j];
+                    values.push_back(value_f[j]);
                 }
 	}
 
@@ -309,7 +182,6 @@ void QFactorAnalysis::loadData(){
 	standardizeArray standarizationClass;
 	for (int iVar=0; iVar<phaseSpaceDim; ++iVar){
             if(standardizationType=="range"){
-                //standarizationClass.rangeStandardization(phaseSpaceVars[iVar],nentries);
                 standarizationClass.rangeStandardization(values,phaseIdxs[iVar],nentries,nbranches);
             }
             else if (standardizationType=="std"){
@@ -349,6 +221,40 @@ void QFactorAnalysis::loadData(){
 	        phasePoint2PotentialNeighbor.push_back(ientry);
 	    }
         }
+
+
+        //We can select a subset of the phase space here. This is useful for the case when we want to implement a fit range
+        //  Previous implementations have used Range() flag in the fitTo command to select a fit range but somehow it drastically
+        //  increased the run time per fit. An equivalent way of doing this is to insert a subset of neighbors that are restricted 
+        //  in range.  
+        cout << "\nRESTRICTING NEIGHBORS BASED ON REQUESTED CONDITIONS" << endl;
+        for (auto condition: parseNeighborReqs.varStringSet){
+            cout << "(condition)" << condition << endl;
+        }
+
+        vector<bool> isins=checkConditions(phasePoint2PotentialNeighbor,values,nameToIdx,nbranches,parseNeighborReqs.varStringSet);
+        //for (int i=0; i<isins.size(); ++i){
+        //for (int i=0; i<20; ++i){
+        //    cout << "Meta,Mpi0: " << values[phasePoint2PotentialNeighbor[i]*nbranches+nameToIdx["Meta"]] << 
+        //                      "," << values[phasePoint2PotentialNeighbor[i]*nbranches+nameToIdx["Mpi0"]] << " isin " << isins[i] << endl;
+        //}
+        //cout << "...\n" << endl;
+        vector<int> _neighbors;
+        _neighbors.reserve(phasePoint2PotentialNeighbor.size());
+        cout << "Entries before subsetting based on user requested neighbor requiremenets: " << phasePoint2PotentialNeighbor.size() << endl;
+        assert(phasePoint2PotentialNeighbor.size() == isins.size());
+        for (int i=0; i<phasePoint2PotentialNeighbor.size(); ++i){
+            if (isins[i])
+                _neighbors.push_back(phasePoint2PotentialNeighbor[i]);
+        }
+        phasePoint2PotentialNeighbor=_neighbors;
+        cout << "Entries after subsetting based on user requested neighbor requiremenets: " << phasePoint2PotentialNeighbor.size() << endl;
+        // Freeing the unused memory now. Actually when I use outputMemUsage it shows that allocating _neighbors/reserving/subsetting didnt
+        //      actually change the memory usuage. In theory there should be a difference so I will leave these lines here.
+        vector<int>().swap(_neighbors);
+        phasePoint2PotentialNeighbor.shrink_to_fit(); // reduce capacity to the new size
+        
+
         cout << "\n\n--------------------------------------" << endl;
 	cout << phasePoint2PotentialNeighbor.size() << "/" << nentries << " are used as potential neighbors" << endl;
         cout << "Some indicies that will be used as potential neighbors: " << endl;
@@ -517,9 +423,6 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 		cout << "Starting event " << ientry << "/" << largest_nentry << " ---- Global Time: " << duration << "ms" << endl; 
 		
                 // Phase space Definitions
-		//for ( int iVar=0; iVar<phaseSpaceDim; ++iVar ){
-		//	phasePoint1[iVar] = phaseSpaceVars[iVar][ientry];
-		//}
 		for ( int iVar=0; iVar<phaseSpaceDim; ++iVar ){
                     phasePoint1[iVar] = values[ientry*nbranches+phaseIdxs[iVar]]; 
                 }
@@ -534,8 +437,6 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                 phasePoint2PotentailNeighbor_BS.reserve(nPotentialNeighbors);
 
                 // Grab current discriminating variable values
-                //for ( int iVar=0; iVar<discrimVarDim; ++iVar)
-                //    currentValues[iVar] = discrimVars[iVar][ientry];
 		for ( int iVar=0; iVar<discrimVarDim; ++iVar ){
                     currentValues[iVar] = values[ientry*nbranches+discrimIdxs[iVar]]; 
                 }
@@ -627,10 +528,11 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                         for (int iVar=0; iVar<discrimVarDim; ++iVar)
                             neighborValues[iVar] = values[newPair.second*nbranches+discrimIdxs[iVar]]; 
 
-                        bool keptNeighbor = fm.insert(neighborValues,weight);
+                        //bool keptNeighbor = 
+                        fm.insert(neighborValues,weight);
 
-                        if (keptNeighbor && saveBranchOfNeighbors){
-                            //cout << "(saving)";
+                        //if (keptNeighbor && saveBranchOfNeighbors){
+                        if (saveBranchOfNeighbors){
                             neighbors[iNeighbor]=newPair.second;
                             ++iNeighbor;
                         }

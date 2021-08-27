@@ -16,6 +16,8 @@ start_time = time.time()
 # altWeights: Name of branch with the comparison/alternative weights. Will only be used for comparison purposes in makePlots program. "none" to set weights to 1
 # varStringBase: semicolon separated branch names to get phase space variables for distance calculation
 # discrimVars: semicolon separated branch names to get discriminating/reference variables
+# extraVars: semicolon separated branch names to get extra variables. One use for this is to load extra variables to make a selection on the set of neighbors (i.e. fitrange)
+# neighborReqs: requirements for the neighbors. Useful to set a fit range
 # nProcess: Number of processes to spawn
 # kDim: Number of neighbors
 # nentries: Number of combos to run over. Set to -1 to run over all. This should be significantly larger than kDim or we might get errors.
@@ -52,7 +54,7 @@ rootFileLocs=[
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "AMO")
 
         ("zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root",
-            "tree_4g_flat", "flatEtapi_b1_test_4_vec_flat")
+            "tree_4g_flat", "flatEtapi_b1_test_6")
 #        ("/d/grid17/ln16/q-values-3/logs/flatEtapi_b1_test_4_1111/postQVal_flatTree_flatEtapi_b1_test_4_1111.root",
 #            "tree_4g_flat", "flatEtapi_b1_test_4_Meta_Mpi0")
 
@@ -65,7 +67,9 @@ _SET_altWeights="AccWeight;weightBS"
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
 _SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3" 
-_SET_discrimVars="Meta"#
+_SET_discrimVars="Meta"
+_SET_extraVars="Mpi0"
+_SET_neighborReqs="Meta>0.36;Meta<0.75;Mpi0>0.085;Mpi0<0.185"
 _SET_nProcess=36
 _SET_kDim=400
 _SET_nentries=-1
@@ -164,6 +168,8 @@ def reconfigureSettings(fileName, combo, _SET_rootFileLoc, _SET_rootTreeName, _S
     spawnProcessChangeSetting("cwd",os.getcwd(),fileName,True)
     spawnProcessChangeSetting("standardizationType",_SET_standardizationType,fileName,True)
     spawnProcessChangeSetting("s_discrimVar",_SET_discrimVars,fileName,True)
+    spawnProcessChangeSetting("s_extraVar",_SET_extraVars,fileName,True)
+    spawnProcessChangeSetting("s_neighborReqs",_SET_neighborReqs,fileName,True)
     spawnProcessChangeSetting("s_fitWeight",_SET_fitWeights,fileName,True)
     spawnProcessChangeSetting("s_altWeight",_SET_altWeights,fileName,True)
     spawnProcessChangeSetting("standardizationType",_SET_standardizationType,fileName,True)
@@ -225,6 +231,9 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
     print(" ".join(changeDims))
     subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
     changeDims=["sed","-i","s@const int discrimVarDim=.*;@const int discrimVarDim="+str(len(_SET_discrimVars.split(";")))+";@g","configSettings.h"]
+    print(" ".join(changeDims))
+    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
+    changeDims=["sed","-i","s@const int extraVarDim=.*;@const int extraVarDim="+str(len(_SET_extraVars.split(";")))+";@g","configSettings.h"]
     print(" ".join(changeDims))
     subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
     changeDims=["sed","-i","s@const int fitWeightsDim=.*;@const int fitWeightsDim="+str(len(_SET_fitWeights.split(";")))+";@g","configSettings.h"]

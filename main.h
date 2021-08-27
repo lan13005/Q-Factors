@@ -59,12 +59,15 @@ class QFactorAnalysis{
                 // ///////////////////////////////////////////////////////////////////////
                 std::vector<string> branchesToGet; 
                 int nbranches; // number of branches to get
+                parseVarString parseNeighborReqs; // Parse the semicolon separated variable string
                 parseVarString parsePhaseSpace; // Parse the semicolon separated variable string
                 parseVarString parseDiscrimVars;
+                parseVarString parseExtraVars;
                 parseVarString parseFitWeightVars;
                 map<string,int> nameToIdx; // maps a branch (string) to the index inside values, values is a vector of vectors 
                 int phaseIdxs[phaseSpaceDim]; // to avoid rereading we will save the indicies
                 int discrimIdxs[discrimVarDim];
+                int extraIdxs[extraVarDim];
                 int fitWeightIdxs[fitWeightsDim];
                 vector<string> typeNames;
                 vector<double> value; // will be used as the address to store the inputs from GetEntry 

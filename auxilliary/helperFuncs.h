@@ -88,7 +88,7 @@ class standardizeArray{
 				if (inputVector[ientry*nbranches+varIdx] > max_inputVector){
 					max_inputVector = inputVector[ientry*nbranches+varIdx];
 				}
-				if (inputVector[ientry]*nbranches+varIdx < min_inputVector){
+				if (inputVector[ientry*nbranches+varIdx] < min_inputVector){
 					min_inputVector = inputVector[ientry*nbranches+varIdx];
 				}
 			}
@@ -280,6 +280,54 @@ string replace_str(string s, string search_str, string replace_str){
         n += replace_str.size();
     }
     return s;
+}
+
+vector<bool> checkConditions(vector<int> neighbors, vector<float> values, map<string,int> &nameToIdx, int n_branches, vector<string> conditions){
+    bool verbose=false;
+    
+    // The final output: checks if the condition is passed for this neighbor
+    vector<bool> isins(neighbors.size(),1);
+
+    for (auto condition: conditions){
+        // The two conditions we will check for 
+        bool foundLT = condition.find("<") != string::npos;
+        bool foundGT = condition.find(">") != string::npos;
+
+        if (verbose) cout << "condition -- passed?" << endl;
+        if (foundLT){
+            string var=condition.substr(0,condition.find("<"));
+            float threshold=stof(condition.substr(condition.find("<")+1, condition.length()));
+            if ( nameToIdx.find(var)==nameToIdx.end() ){
+                cout << "checkConditions function could not find " << var << " branch in nameToIdx. exiting..." << endl;
+                exit(0);
+            }
+            int varIdx = nameToIdx[var];
+            for (int i=0; i<neighbors.size(); ++i){
+                bool passed = values[i*n_branches+varIdx]<threshold;
+                isins[i] = isins[i]*passed;
+                if (verbose) cout << var << "=" << values[neighbors[i]*n_branches+varIdx] << "<" << threshold << " -- " << isins[i] << endl;
+            }
+        }
+        else if(foundGT){
+            string var=condition.substr(0,condition.find(">"));
+            float threshold=stof(condition.substr(condition.find(">")+1, condition.length()));
+            if ( nameToIdx.find(var)==nameToIdx.end() ){
+                cout << "checkConditions function could not find " << var << " branch in nameToIdx. exiting..." << endl;
+                exit(0);
+            }
+            int varIdx = nameToIdx[var];
+            for (int i=0; i<neighbors.size(); ++i){
+                bool passed = values[neighbors[i]*n_branches+varIdx]>threshold;
+                isins[i] = isins[i]*passed;
+                if (verbose) cout << var << "=" << values[i*n_branches+varIdx] << ">" << threshold << " -- " << isins[i] << endl;
+            }
+        }
+        else{
+            cout << "Received unexpected comparator in neighborReqs! Only accepts {<,>} signs. exiting..." << endl;
+            exit(0);
+        }
+    }
+    return isins;
 }
 
 #endif

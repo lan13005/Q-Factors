@@ -90,7 +90,8 @@ class fitManager
 	fitManager(string iProcess){ 
             /////////////// VARIABLES
             x = new RooRealVar{("x"+iProcess).c_str(),"Mass GeV",(fitRangeX[1]-fitRangeX[0])/2+fitRangeX[0],fitRangeX[0],fitRangeX[1]};
-            x->setRange(("roo_fitRangeMeta_"+iProcess).c_str(),fitRangeX[0], fitRangeX[1]);
+            //x = new RooRealVar{("x"+iProcess).c_str(),"Mass GeV",(fitRangeX[1]-fitRangeX[0])/2+fitRangeX[0],fitRangeX[0],fitRangeX[1]};
+            //x->setRange(("roo_fitRangeMeta_"+iProcess).c_str(),fitRangeX[0], fitRangeX[1]);
             x->setBins(100);
             w = new RooRealVar{("w"+iProcess).c_str(), "Weight", 0, -10, 10}; // Weights can take a wide range
             rooData = new RooDataSet{("rooData"+iProcess).c_str(),"rooData",RooArgSet(*x,*w),RooFit::WeightVar(*w)};
@@ -145,24 +146,23 @@ class fitManager
         }
         float calculate_q(float valX, float valY){} // another signature for 2D fits
 
-        bool insert(float* vals, float weight){
+        void insert(float* vals, float weight){
             // with 600 neighbors it seems like the fitTo command takes ~2x longer when using Range() argument which selects the fit range.
             // This is equivalent to shrinking the dataset range and fitting over the full range which will save time.
             // It might be useful to think of setting a fit range as to lower the effective number of nearest neighbors. Another thing that lowers
             // the effective number of neighbors is any weights we apply to the filling of the histograms
             float valX = vals[0];
-            bool keptNeighbor = ( valX > fitRangeX[0] && 
-                                  valX < fitRangeX[1]
-                                );
-            if (keptNeighbor){
-                x->setVal(valX);
-                w->setVal(weight);
-                // w will get overwritten here when adding to RooDataSet but actually does not pick up the value. So we cannot use 
-                // w.getVal() but the dataset will be weighted: https://root-forum.cern.ch/t/fit-to-a-weighted-unbinned-data-set/33495
-                rooData->add(RooArgSet(*x,*w),weight);
-            }
-            keptNeighbor=true;
-            return keptNeighbor;
+            //bool keptNeighbor = ( valX > fitRangeX[0] && 
+            //                      valX < fitRangeX[1]
+            //                    );
+            //if (keptNeighbor){
+            x->setVal(valX);
+            w->setVal(weight);
+            // w will get overwritten here when adding to RooDataSet but actually does not pick up the value. So we cannot use 
+            // w.getVal() but the dataset will be weighted: https://root-forum.cern.ch/t/fit-to-a-weighted-unbinned-data-set/33495
+            rooData->add(RooArgSet(*x,*w),weight);
+            //}
+            //return keptNeighbor;
         }
 
         RooArgSet* getParameters(){ 
