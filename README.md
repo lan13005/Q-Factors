@@ -1,6 +1,8 @@
 ## Updates:
 08/27/2021: Updated method to set fit range. We now implement it as a restriction on the potential neighbors which can be set using neighborReqs variable in run.py. neighborReqs uses a semicolon separated string of conditions (currently only accepts less than or greater signs). This has the benefit of allowing one to select the same set of neighbors even if the {discrim var, fit range} combination was different. The previous approach would select a different set of neighbors since the fitRange would drop different entries. This also required the loading of extra variables which is defined in run.py as extraVars. Also updated how the data is stored. A single vector is now used to hold all the data in RAM as a contiguous chunk as opposed to having separate arrays to hold the different variables. This allows for easier querying of data based on the name of branch/variable and more efficient for memory if we had duplicated requests for variables. 
+
 08/24/2021: Weights allow semicolon separated branch names
+
 08/11/2021: Reogranization of the folders to allow for looping over all potential subsets of phase space variables. Useful in determining final phase space. makePlots also draws 2D matched thrown distributions if it can
 
 ## Introduction to Q-Factor sideband subtraction at GlueX
