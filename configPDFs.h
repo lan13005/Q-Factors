@@ -54,9 +54,12 @@ class fitManager
         // DEFINE VALUES TO INITIALIZE ROOFIT VARIABLES WITH
         float initMassX = 0.549354;
         float initSigmaX = 0.0166494;
+        std::vector<float> fitRangeX={0.36,0.75};
+        //float initMassX = 0.135059;
+        //float initSigmaX = 0.00612767;
+        //std::vector<float> fitRangeX={0.085,0.185};
         float initBernA = 0.1;
         float initBernB = 0.1;
-        std::vector<float> fitRangeX={0.36,0.75};
 
         ///////////////////////////////
         // DEFINE VARIABLES FOR DATASET

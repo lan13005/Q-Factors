@@ -13,7 +13,8 @@ start_time = time.time()
 ## --- STANDARD ----
 # rootFileLocs: Root file to be analyzed, followed by the name of the tree and a name tag to avoid overwriting runs
 # fitWeights: Name of branch with the fit weighting. Fitted histograms will be weighted by this. "none" to set weights to 1
-# altWeights: Name of branch with the comparison/alternative weights. Will only be used for comparison purposes in makePlots program. "none" to set weights to 1
+# sigWeights: Name of branch with the qfactor weights. Will only be used for comparison purposes in makePlots program (These are the "Q" plots). "none" to set weights to 1
+# altWeights: Name of branch with the comparison/alternative weights. Will only be used for comparison purposes in makePlots program (These are the "SB" plots). "none" to set weights to 1
 # varStringBase: semicolon separated branch names to get phase space variables for distance calculation
 # discrimVars: semicolon separated branch names to get discriminating/reference variables
 # extraVars: semicolon separated branch names to get extra variables. One use for this is to load extra variables to make a selection on the set of neighbors (i.e. fitrange)
@@ -53,19 +54,19 @@ rootFileLocs=[
 #        ,("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_polAMO.root",
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "AMO")
 
-        ("zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root",
-            "tree_4g_flat", "flatEtapi_b1_Meta")
-#        ("/d/grid17/ln16/q-values-3/logs/flatEtapi_b1_test_4_1111/postQVal_flatTree_flatEtapi_b1_test_4_1111.root",
-#            "tree_4g_flat", "flatEtapi_b1_test_4_Meta_Mpi0")
+#        ("zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root",
+#            "tree_4g_flat", "flatEtapi_b1_Mpi0")
+        ("/d/grid17/ln16/q-values-3/logs/flatEtapi_b1_Mpi0_1111/postQVal_flatTree_flatEtapi_b1_Mpi0_1111.root",
+            "tree_4g_flat", "flatEtapi_b1_Mpi0_MetaIndep")
 
 #        ("degALL_data_2017_mEllipse_8288_tLT1_chi13_omegacut_treeFlat_DSelector.root", 
 #            "tree_4g_flat", "2017_2D")
         ]
 
 _SET_fitWeights="AccWeight" 
-_SET_altWeights="AccWeight;weightBS" 
+_SET_sigWeights="AccWeight;qvalue_Mpi0" # Just for makePlots to draw with appropriate weights
+_SET_altWeights="AccWeight;weightBS" # Just for makePlots to draw with appropriate weights 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
-#_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
 _SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3" 
 _SET_discrimVars="Meta"
 _SET_extraVars="Mpi0"
@@ -171,6 +172,7 @@ def reconfigureSettings(fileName, combo, _SET_rootFileLoc, _SET_rootTreeName, _S
     spawnProcessChangeSetting("s_extraVar",_SET_extraVars,fileName,True)
     spawnProcessChangeSetting("s_neighborReqs",_SET_neighborReqs,fileName,True)
     spawnProcessChangeSetting("s_fitWeight",_SET_fitWeights,fileName,True)
+    spawnProcessChangeSetting("s_sigWeight",_SET_sigWeights,fileName,True)
     spawnProcessChangeSetting("s_altWeight",_SET_altWeights,fileName,True)
     spawnProcessChangeSetting("standardizationType",_SET_standardizationType,fileName,True)
     spawnProcessChangeSetting("alwaysSaveTheseEvents",_SET_alwaysSaveTheseEvents,fileName,True)
@@ -239,6 +241,9 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
     changeDims=["sed","-i","s@const int fitWeightsDim=.*;@const int fitWeightsDim="+str(len(_SET_fitWeights.split(";")))+";@g","configSettings.h"]
     print(" ".join(changeDims))
     subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
+    changeDims=["sed","-i","s@const int sigWeightsDim=.*;@const int sigWeightsDim="+str(len(_SET_sigWeights.split(";")))+";@g","configSettings.h"]
+    print(" ".join(changeDims))
+    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
     changeDims=["sed","-i","s@const int altWeightsDim=.*;@const int altWeightsDim="+str(len(_SET_altWeights.split(";")))+";@g","configSettings.h"]
     print(" ".join(changeDims))
     subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
@@ -303,6 +308,13 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
             openProcess = subprocess.Popen(executeMain,stdout=outLog,stderr=errLog)
             pids.append(openProcess.pid)
             openProcesses.append(openProcess)
+
+        # wait for the progress checks to fully complete and have found completion before querying the exit codes of the `main` program
+        #   The time the completion of repeatProgressChecks means the `main` process have completed or very close to completion
+        #   Good to make sure though
+        print("\n\nRunning progress checks...")
+        time.sleep(0.5)
+        subprocess.Popen(["python","repeatProgressChecks.py","-t","10","-n",str(_SET_nProcess),"-f",_SET_fileTag]).wait() 
         exit_codes = [proc.wait() for proc in openProcesses]
 
 def mergeResults(_SET_fileTag):

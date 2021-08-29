@@ -8,11 +8,12 @@ using namespace std;
 // DO NOT MODIFY THIS SECTION. GETS OVERWRITTEN BY RUN.PY
 // DO NOT MODIFY THIS SECTION. GETS OVERWRITTEN BY RUN.PY
 string cwd="/d/grid17/ln16/q-values-3";
-string rootFileLoc="zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root";
+string rootFileLoc="/d/grid17/ln16/q-values-3/logs/flatEtapi_b1_Mpi0_1111/postQVal_flatTree_flatEtapi_b1_Mpi0_1111.root";
 string rootTreeName="tree_4g_flat";
-string fileTag="flatEtapi_b1_Meta_1111";
+string fileTag="flatEtapi_b1_Mpi0_MetaIndep_1111";
 string runTag="";
 string s_fitWeight="AccWeight";
+string s_sigWeight="AccWeight;qvalue_Mpi0";
 string s_altWeight="AccWeight;weightBS";
 string s_discrimVar="Meta";
 string s_extraVar="Mpi0";
@@ -28,6 +29,7 @@ const int phaseSpaceDim=4;
 const int discrimVarDim=1;
 const int extraVarDim=1;
 const int fitWeightsDim=1;
+const int sigWeightsDim=2;
 const int altWeightsDim=2;
 bool redistributeBkgSigFits=0;
 bool doKRandomNeighbors=0;

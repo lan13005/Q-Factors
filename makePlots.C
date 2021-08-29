@@ -84,7 +84,7 @@ void makePlots(bool makeTotal){
         // DOING SOME CHECKS REAL QUICK AND LOAD TRUTH
         // //////////////////////////////
         cout << "LOADING WEIGHTING BRANCHES" << endl;
-        if ((altWeightsDim==0)|(fitWeightsDim==0)){
+        if ((altWeightsDim==0)|(sigWeightsDim==0)){
             cout << "either altWeights and fitWeights string is empty. If you want to set weights to 1 then use none as the string. exiting..." << endl;
             exit(0);
         }
@@ -123,11 +123,11 @@ void makePlots(bool makeTotal){
                 branchesToGet.push_back(s);
         }
         
-        parseVarString parseFitWeightVars;
-	parseFitWeightVars.parseString(s_fitWeight);
+        parseVarString parseSigWeightVars;
+	parseSigWeightVars.parseString(s_sigWeight);
         parseVarString parseAltWeightVars;
 	parseAltWeightVars.parseString(s_altWeight);
-        for (auto s: parseFitWeightVars.varStringSet){
+        for (auto s: parseSigWeightVars.varStringSet){
             if (std::find(branchesToGet.begin(), branchesToGet.end(), s) == branchesToGet.end())
                 branchesToGet.push_back(s);
         }
@@ -294,9 +294,9 @@ void makePlots(bool makeTotal){
 
 	for (int ientry=0; ientry<nentries; ientry++){
 		qvalue = values[nameToIdx[("qvalue_"+s_discrimVar2).c_str()]][ientry];
-                baseWeight=values[nameToIdx[parseFitWeightVars.varStringSet[0]]][ientry];
-                for (int iVar=1; iVar<fitWeightsDim; ++iVar)
-                    baseWeight *= values[nameToIdx[parseFitWeightVars.varStringSet[iVar]]][ientry];
+                baseWeight=values[nameToIdx[parseSigWeightVars.varStringSet[0]]][ientry];
+                for (int iVar=1; iVar<sigWeightsDim; ++iVar)
+                    baseWeight *= values[nameToIdx[parseSigWeightVars.varStringSet[iVar]]][ientry];
                 altWeight=values[nameToIdx[parseAltWeightVars.varStringSet[0]]][ientry];
                 for (int iVar=1; iVar<altWeightsDim; ++iVar)
                     altWeight *= values[nameToIdx[parseAltWeightVars.varStringSet[iVar]]][ientry];
