@@ -13,8 +13,8 @@ start_time = time.time()
 ## --- STANDARD ----
 # rootFileLocs: Root file to be analyzed, followed by the name of the tree and a name tag to avoid overwriting runs
 # fitWeights: Name of branch with the fit weighting. Fitted histograms will be weighted by this. "none" to set weights to 1
-# sigWeights: Name of branch with the qfactor weights. Will only be used for comparison purposes in makePlots program (These are the "Q" plots). "none" to set weights to 1
-# altWeights: Name of branch with the comparison/alternative weights. Will only be used for comparison purposes in makePlots program (These are the "SB" plots). "none" to set weights to 1
+# sigWeights: Name of branch with the qfactor weights. Will only be used for comparison purposes in makePlots program (These are the "Q" plots). Q_tot will be weighted by sigWeights. Q_sig will be weighted by sigWeights AND the newly computed q-factor. "none" to set weights to 1
+# altWeights: Name of branch with the comparison/alternative weights. Will only be used for comparison purposes in makePlots program (These are the "SB" plots). SB_sig will be weighted by altWeights. "none" to set weights to 1
 # varStringBase: semicolon separated branch names to get phase space variables for distance calculation
 # discrimVars: semicolon separated branch names to get discriminating/reference variables
 # extraVars: semicolon separated branch names to get extra variables. One use for this is to load extra variables to make a selection on the set of neighbors (i.e. fitrange)
@@ -69,11 +69,11 @@ _SET_altWeights="AccWeight;weightBS" # Just for makePlots to draw with appropria
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
 _SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3" 
 _SET_discrimVars="Meta"
-_SET_extraVars="Mpi0"
-_SET_neighborReqs="Meta>0.36;Meta<0.75;Mpi0>0.085;Mpi0<0.185"
-_SET_nProcess=36
+_SET_extraVars=""
+_SET_neighborReqs=""#"Meta>0.36;Meta<0.75;Mpi0>0.085;Mpi0<0.185"
+_SET_nProcess=2
 _SET_kDim=400
-_SET_nentries=-1
+_SET_nentries=500
 _SET_numberEventsToSavePerProcess=2
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 
@@ -158,6 +158,18 @@ def spawnProcessChangeSetting(varName,varValue,fileName,isString):
         sedArgs=["sed","-i",'s@'+varName+'=.*;@'+varName+'='+str(varValue)+';@g',fileName]
     subprocess.Popen(sedArgs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait()
 
+def changeDim(search,value,fail_if_empty_str):
+    dim=len(value.split(";"))
+    if value=="":
+        if fail_if_empty_str:
+            print(value+" cannot be an empty string. Exiting...")
+            exit(0)
+        else:
+            dim=dim-1
+    changeDims=["sed","-i","s@const int "+search+"=.*;@const int "+search+"="+str(dim)+";@g","configSettings.h"]
+    print(" ".join(changeDims))
+    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
+
 def reconfigureSettings(fileName, combo, _SET_rootFileLoc, _SET_rootTreeName, _SET_fileTag):
     '''
     Settings we need to set in helpFuncs
@@ -228,25 +240,34 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
     print("PHASE SPACE VARIABLES: {}".format(_SET_varString))
     numVarInChosenVarStr=len(_SET_varString.split(";"))
 
-    # Updated dimensionality of phase space and discriminating variables and fitWeights and altWeights
-    changeDims=["sed","-i","s@const int phaseSpaceDim=.*;@const int phaseSpaceDim="+str(numVarInChosenVarStr)+";@g","configSettings.h"]
-    print(" ".join(changeDims))
-    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
-    changeDims=["sed","-i","s@const int discrimVarDim=.*;@const int discrimVarDim="+str(len(_SET_discrimVars.split(";")))+";@g","configSettings.h"]
-    print(" ".join(changeDims))
-    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
-    changeDims=["sed","-i","s@const int extraVarDim=.*;@const int extraVarDim="+str(len(_SET_extraVars.split(";")))+";@g","configSettings.h"]
-    print(" ".join(changeDims))
-    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
-    changeDims=["sed","-i","s@const int fitWeightsDim=.*;@const int fitWeightsDim="+str(len(_SET_fitWeights.split(";")))+";@g","configSettings.h"]
-    print(" ".join(changeDims))
-    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
-    changeDims=["sed","-i","s@const int sigWeightsDim=.*;@const int sigWeightsDim="+str(len(_SET_sigWeights.split(";")))+";@g","configSettings.h"]
-    print(" ".join(changeDims))
-    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
-    changeDims=["sed","-i","s@const int altWeightsDim=.*;@const int altWeightsDim="+str(len(_SET_altWeights.split(";")))+";@g","configSettings.h"]
-    print(" ".join(changeDims))
-    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
+        
+    changeDim("phaseSpaceDim",_SET_varString,True)
+    changeDim("discrimVarDim",_SET_discrimVars,True)
+    changeDim("extraVarDim",_SET_extraVars,False)
+    changeDim("fitWeightsDim",_SET_fitWeights,False)
+    changeDim("sigWeightsDim",_SET_sigWeights,False)
+    changeDim("altWeightsDim",_SET_altWeights,False)
+
+#    # Updated dimensionality of phase space and discriminating variables and fitWeights and altWeights
+#    changeDims=["sed","-i","s@const int phaseSpaceDim=.*;@const int phaseSpaceDim="+str(numVarInChosenVarStr)+";@g","configSettings.h"]
+#    print(" ".join(changeDims))
+#    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
+#    changeDims=["sed","-i","s@const int discrimVarDim=.*;@const int discrimVarDim="+str(len(_SET_discrimVars.split(";")))+";@g","configSettings.h"]
+#    print(" ".join(changeDims))
+#    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
+#    n_extraVars = len(_SET_extraVars.split(";")) if _SET_extraVars!="" else 0
+#    changeDims=["sed","-i","s@const int extraVarDim=.*;@const int extraVarDim="+str(n_extraVars)+";@g","configSettings.h"]
+#    print(" ".join(changeDims))
+#    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
+#    changeDims=["sed","-i","s@const int fitWeightsDim=.*;@const int fitWeightsDim="+str(len(_SET_fitWeights.split(";")))+";@g","configSettings.h"]
+#    print(" ".join(changeDims))
+#    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
+#    changeDims=["sed","-i","s@const int sigWeightsDim=.*;@const int sigWeightsDim="+str(len(_SET_sigWeights.split(";")))+";@g","configSettings.h"]
+#    print(" ".join(changeDims))
+#    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
+#    changeDims=["sed","-i","s@const int altWeightsDim=.*;@const int altWeightsDim="+str(len(_SET_altWeights.split(";")))+";@g","configSettings.h"]
+#    print(" ".join(changeDims))
+#    subprocess.Popen(changeDims, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).wait() # we have to wait for this command to finish before compiling...
 
     # the distance calculation needs dim to know the dimension of phase space. Before we compile it the script needs to know so we have replace before compilation 
     print("Deleting main and recompiling it")
@@ -261,6 +282,10 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
     rooFitFlags = ["-lRooStats","-lRooFitCore", "-lRooFit"]
     compileMain.extend(rootFlags)
     compileMain.extend(rooFitFlags)
+    if ( any([loc=="" for loc in _SET_extraLibs]) ):
+       print("Why would you want to import a library with location as an empty string? If you do not want to import any libraries leave _SET_extraLibs=[]")
+       print("Exiting...")
+       exit(0)
     compileMain.extend(_SET_extraLibs)
     print("\nStarting new compilation\n----------------------")
     print(" ".join(compileMain))
@@ -314,7 +339,7 @@ def runOverCombo(combo,_SET_rootFileLoc,_SET_rootTreeName,_SET_fileTag):
         #   Good to make sure though
         print("\n\nRunning progress checks...")
         time.sleep(0.5)
-        subprocess.Popen(["python","repeatProgressChecks.py","-t","10","-n",str(_SET_nProcess),"-f",_SET_fileTag]).wait() 
+        subprocess.Popen([sys.executable,"repeatProgressChecks.py","-t","10","-n",str(_SET_nProcess),"-f",_SET_fileTag]).wait() 
         exit_codes = [proc.wait() for proc in openProcesses]
 
 def mergeResults(_SET_fileTag):

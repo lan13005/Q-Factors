@@ -227,7 +227,7 @@ void QFactorAnalysis::loadData(){
         //  Previous implementations have used Range() flag in the fitTo command to select a fit range but somehow it drastically
         //  increased the run time per fit. An equivalent way of doing this is to insert a subset of neighbors that are restricted 
         //  in range.  
-        cout << "\nRESTRICTING NEIGHBORS BASED ON REQUESTED CONDITIONS" << endl;
+        cout << "\nRESTRICTING NEIGHBORS BASED ON THE FOLLOWING REQUESTED CONDITIONS" << endl;
         for (auto condition: parseNeighborReqs.varStringSet){
             cout << "(condition)" << condition << endl;
         }

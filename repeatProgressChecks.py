@@ -15,9 +15,9 @@ def checkProgress(nProcess, tag, percentages):
             # Load the last n lines of process log
             #######################
             p=subprocess.Popen(["tail", "-n20",folder+"/"+"processLog"+str(iproc)+".txt"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            output=p.communicate()
-            if path.exists(folder+"/"+"processLog"+str(iproc)+".txt") and output[0]!="": # make sure we have some lines the log file
-                allLines=output[0].split("\n") 
+            output=p.communicate()[0].decode("utf-8")
+            if path.exists(folder+"/"+"processLog"+str(iproc)+".txt") and output!="": # make sure we have some lines the log file
+                allLines=output.split("\n") 
                 newestLine=""
                 allLines.reverse() # reverse to get the newest line
                 for line in allLines:
