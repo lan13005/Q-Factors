@@ -49,7 +49,7 @@ def checkProgress(nProcess, tag, percentages):
                     else:
                         print(colored("process {:d} percent completed: ({:d}/{:d})  ---- {:d}%".format(iproc,current,end,perc_complete),"yellow"))
             else: # if log file does not exist or is empty then it is still initializing
-                print(colored("process {:d} still initializing...","red"))
+                print(colored("process {:d} was still initializing, lets give it some more time...".format(iproc),"red"))
                 continue
         else: # this checks if the process was already complete before the current check
             print(colored("process {:d} is complete".format(iproc),"green"))

@@ -12,13 +12,13 @@ start_time = time.time()
 ### NOTE: The code calculates the q-factor for all events in the branch, make sure you feed only those events of interest
 ## --- STANDARD ----
 # rootFileLocs: Root file to be analyzed, followed by the name of the tree and a name tag to avoid overwriting runs
-# fitWeights: Name of branch with the fit weighting. Fitted histograms will be weighted by this. "none" to set weights to 1
-# sigWeights: Name of branch with the qfactor weights. Will only be used for comparison purposes in makePlots program (These are the "Q" plots). Q_tot will be weighted by sigWeights. Q_sig will be weighted by sigWeights AND the newly computed q-factor. "none" to set weights to 1
-# altWeights: Name of branch with the comparison/alternative weights. Will only be used for comparison purposes in makePlots program (These are the "SB" plots). SB_sig will be weighted by altWeights. "none" to set weights to 1
+# fitWeights: semicolon separated names of the branches for fit weighting. Fitted histograms will be weighted by the product of the branch values. "none" to set weights to 1
+# sigWeights: semicolon separated names of the branches to draw with the makePlots program. These are the "Q" plots. Q_tot will be weighted by the product of the branch values in sigWeights. Q_sig will be weighted by sigWeights AND the newly computed q-factor. Q_tot is weighted by sigWeights. "none" to set weights to 1
+# altWeights: semicolon separted names of the branches to draw with the makePlots program. These are the "SB" plots. SB_sig will be weighted by the product of the branch values in altWeights. SB_tot is not weighted. "none" to set weights to 1
 # varStringBase: semicolon separated branch names to get phase space variables for distance calculation
 # discrimVars: semicolon separated branch names to get discriminating/reference variables
-# extraVars: semicolon separated branch names to get extra variables. One use for this is to load extra variables to make a selection on the set of neighbors (i.e. fitrange)
-# neighborReqs: requirements for the neighbors. Useful to set a fit range
+# extraVars: semicolon separated branch names to get extra variables. One use for this is to load extra variables to make a selection on the set of neighbors (i.e. fitrange). Then the variable can be used in neighborReqs, for instance.
+# neighborReqs: requirements for the neighbors. Useful to set a fit range. This can be useful if you are trying to compare to sideband subtraction where sideband subtraction might require a larger range than you want q-factors to consider
 # nProcess: Number of processes to spawn
 # kDim: Number of neighbors
 # nentries: Number of combos to run over. Set to -1 to run over all. This should be significantly larger than kDim or we might get errors.
@@ -26,19 +26,19 @@ start_time = time.time()
 ## --- ADVANCED ----
 # standardizationType: {range,std} what type of standardization to apply when normalizing the phase space variables. Do nothing if any other string 
 # redistributeBkgSigFits: {1,0} should we do the 3 different fits where there is 100% bkg, 50/50, 100% signal initialization. 1 to do all 3 and 0 to do only 50/50 
-# nRndRepSubset: size of the random subset of potential neighbors. If <=0 or > nentries then we will not consider random subsets
-# doKRandomNeighbors: should we use k random neighbors as a test instead of doing k nearest neighbors?
+# nRndRepSubset: size of the random subset of potential neighbors. If <=0 or > nentries then we will not consider random subsets. This flag will limit the number of neighbors to consider. The usefulness of this flag will depend on the density of the phase space. If there is sufficient density then it can be argued that the set of potential neighbors can be reduced. 
+# doKRandomNeighbors: should we use k random neighbors as a test instead of doing k nearest neighbors? Useful check to decouple fit performance and neighbor finding
 # nBS: number of times we should bootstrap the set of neighbors to calculate q-factors with. Used to extract an error on the q-factors. 0 = no bootstrapping
-# runTag: 3 folders are outputs of this set of programs {fitResults/diagnosticPlots/histograms}. Append a runTag to the names - i.e. fitResults_newTag
-# seedShift: in case we dont want to save the same q-value histogram we can choose another random seed
+# runTag: 3 folders are outputs of this set of programs {fitResults/diagnosticPlots/histograms}. Append a runTag to the names - i.e. fitResults_newTag to prevent overwriting
+# seedShift: in case we dont want to save the same q-value histogram we can choose another random seed. This flag is related to the numberEventsToSavePerProcess flag.
 # saveBShistsAlso: should we save every bootstrapped histogram also?
-# alwaysSaveTheseEvents: A histogram of the fit will always be saved for these semicolon separated events
+# alwaysSaveTheseEvents: A histogram of the fit will always be saved for these semicolon separated events which allows for studying a single fit
 # saveBranchOfNeighbors: Should we save a branch containing all the neighbors per event. Size increase ~ (4Bytes per int)*kDim*nentries
-# saveMemUsage: should we output the memory usage into the logs file?
-# saveEventLevelProcessSpeed:  include info on process speed into processLogX.log files
+# saveMemUsage: should we output the memory usage into the logs file? Useful to debug source of memory usuage
+# saveEventLevelProcessSpeed:  (LEAVE ON) include info on process speed into processLogX.log files. 
 # emailWhenFinished: we can send an email when the code is finished, no email sent if empty string
-# runBatch: Not ready - (default=0) 0=run on a single computer, 1=submit to condor for batch processing
-# runAllPhaseCombos: (bool) whether we should run over all possible subsets of the phase space. Number fits = Sum_i (n choose i); i=1 to n+1; n=size of varStringBase
+# runBatch: partly production ready - (default=0) 0=run on a single computer, 1=submit to condor for batch processing
+# runAllPhaseCombos: (bool) whether we should run over all possible subsets of the phase space. Number fits = Sum_i (n choose i); i=1 to n+1; n=size of varStringBase. If you have no idea what variables to use you can just search it all if you have enough time and computing power. 
 # extraLibs: Include extra libraries to compile main with. Intended for loading custom PDFs
 
 # -------- STANDARD ---------
@@ -87,7 +87,7 @@ _SET_saveBShistsAlso=0
 _SET_alwaysSaveTheseEvents=""
 _SET_saveBranchOfNeighbors=1
 _SET_saveMemUsage=1 
-_SET_saveEventLevelProcessSpeed=1 
+_SET_saveEventLevelProcessSpeed=1 #do not turn off 
 _SET_emailWhenFinished="" 
 _SET_runBatch=0 
 _SET_runAllPhaseCombos=0

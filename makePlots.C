@@ -205,7 +205,7 @@ void makePlots(bool makeTotal){
                 }
 	}
 
-        cout << "////// JUST SOME CHECKS //////" << endl;
+        cout << "////// CHECK IF THESE NUMBERS ATLEAST MAKE SENSE TO YOU //////" << endl;
         for (auto j=0; j<values.size(); ++j){
             cout << "size of " << branchesToGet[j] << " branch: " << values[j].size() << endl; 
             cout << "  first 10 elements: ";
