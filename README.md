@@ -1,4 +1,6 @@
 ## Updates:
+9/7/2021: Includes program to aggregate results from run.py's runAllPhaseCombos variable convertImagesToPDF.py
+
 8/29/2021: run.py outputs progress by checking the output in processLog.txt files in the log directory
 
 08/27/2021: Updated method to set fit range. We now implement it as a restriction on the potential neighbors which can be set using neighborReqs variable in run.py. neighborReqs uses a semicolon separated string of conditions (currently only accepts less than or greater signs). This has the benefit of allowing one to select the same set of neighbors even if the {discrim var, fit range} combination was different. The previous approach would select a different set of neighbors since the fitRange would drop different entries. This also required the loading of extra variables which is defined in run.py as extraVars. Also updated how the data is stored. A single vector is now used to hold all the data in RAM as a contiguous chunk as opposed to having separate arrays to hold the different variables. This allows for easier querying of data based on the name of branch/variable and more efficient for memory if we had duplicated requests for variables. 
@@ -31,7 +33,7 @@ Example usage:
     - If plotting you also need to update histsToMake variable in makePlots.C to draw w.e. variable you want
 
 Extra...
-5. convertROOTtoPNG.C will aggregate the ROOT files in the histograms folder into a single pdf file
+5. convertROOTtoImage.C will aggregate the ROOT files in the histograms folder into a single pdf file
 6. flat_to_amptools.C can be used to convert the flat tree outputs of the Q-factor program into amptools format. Not made general yet
 
 
