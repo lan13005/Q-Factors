@@ -232,20 +232,29 @@ void outputMemUsage(ProcInfo_t pinfo, string contextString){
 string setBranchAddress(TTree* tree, string variable, Long64_t* value_i, float* value_f, double* value){
     //tree->Print();
     cout << "setBranchAddress: " << variable << endl;
-    string typeName=tree->GetLeaf(variable.c_str())->GetTypeName();
-    if (typeName=="Long64_t"){
-        cout << "Setting Branch with data type Long64 " << variable << endl; 
-        tree->SetBranchAddress(variable.c_str(),value_i);
+    string typeName;
+    if (variable!="none"){
+        typeName=tree->GetLeaf(variable.c_str())->GetTypeName();
+        if (typeName=="Long64_t"){
+            cout << "Setting Branch with data type Long64 " << variable << endl; 
+            tree->SetBranchAddress(variable.c_str(),value_i);
+        }
+        else if (typeName=="Float_t"){
+            cout << "Setting Branch with data type float " << variable << endl; 
+            tree->SetBranchAddress(variable.c_str(),value_f);
+        }
+        else if (typeName=="Double_t"){
+            cout << "Setting Branch with data type double " << variable << endl; 
+            tree->SetBranchAddress(variable.c_str(),value);
+        }
+        else { cout << "Branch " << variable << " has unlisted datatype: " << typeName << ". exiting" << endl; exit(0); }
     }
-    else if (typeName=="Float_t"){
-        cout << "Setting Branch with data type float " << variable << endl; 
-        tree->SetBranchAddress(variable.c_str(),value_f);
+    else{
+        cout << "Branch variable is none. Setting underlying value to 1" << endl;
+        // if we are requesting a branch called "none" we will not load the branch and simply fix the underlying value to 1. And as a float
+        typeName="Float_t";
+        *value_f=1; 
     }
-    else if (typeName=="Double_t"){
-        cout << "Setting Branch with data type double " << variable << endl; 
-        tree->SetBranchAddress(variable.c_str(),value);
-    }
-    else { cout << "Branch " << variable << " has unlisted datatype: " << typeName << ". exiting" << endl; exit(0); }
    return typeName; 
 }
 

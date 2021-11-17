@@ -22,7 +22,9 @@ searchStr="_SET_varStringBase="
 with open("run.py","r") as cfgFile:
     cfgFileLines=cfgFile.readlines()
     cfgFileLines=[line for line in cfgFileLines if line.startswith(searchStr)] # search for correct line
-    cfgFileLines=cfgFileLines[0].rstrip().lstrip() # remove whitespaces
+    assert(len(cfgFileLines)==1) # there shoudlnt be more than one version of this line
+    cfgFileLines="".join(cfgFileLines[0].split()) # remove all whitespaces, in case you are Jason and include extra white space
+    cfgFileLines=cfgFileLines.rstrip().lstrip() # remove whitespaces
     cfgFileLines=cfgFileLines.split("#")[0] # remove comments
     cfgFileLines=cfgFileLines.split(searchStr)[1] # remove searchStr
     cfgFileLines=cfgFileLines.strip('"')

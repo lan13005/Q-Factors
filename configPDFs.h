@@ -60,6 +60,11 @@ class fitManager
         //std::vector<float> fitRangeX={0.085,0.185};
         float initBernA = 0.1;
         float initBernB = 0.1;
+        string _iProcess;
+        int npars=0;
+        RooAbsCollection *params_collection;
+        map<int, string> actual_param_order;
+        map<int, RooRealVar*> expected_param_order;
 
         ///////////////////////////////
         // DEFINE VARIABLES FOR DATASET
@@ -111,6 +116,27 @@ class fitManager
             nbkg = new RooRealVar{("nbkg"+iProcess).c_str(),"nbkg",(float)kDim/2,0,(float)kDim};
             /////////////// CREATING FINAL PDFS
             rooSigBkg = new RooAddPdf{("rooSumPdf"+iProcess).c_str(), "rooSumPdf", RooArgList(*rooSig,*rooBkg),RooArgSet(*nsig,*nbkg)};
+
+            ///////////////  Expected parameter ordering
+            expected_param_order = { {0, bern_parA}, {1, bern_parB}, {2, nbkg}, {3, nsig}, {4, sx} }; 
+
+            ///////////////  Actual parameter ordering
+            _iProcess=iProcess;
+            params_collection = rooSigBkg->getParameters(RooArgList(*x))->selectByAttrib("Constant",kFALSE);
+            string params_string = params_collection->contentsString(); // contents are comma separated
+            string param_ele; 
+            stringstream ss(params_string);
+            bool param_order_is_correct=true;
+            //cout << "List of fit parameters:" << endl;
+            while(getline(ss, param_ele, ',')){
+                string expected_par_name=expected_param_order[npars]->GetName();
+                param_order_is_correct *= expected_param_order[npars]->GetName()==param_ele;
+                cout << "(" << param_order_is_correct << ")";
+                cout << "comparing expected and actual param ordering: " << expected_param_order[npars]->GetName() << " and " << param_ele << endl;
+                actual_param_order[npars++]=param_ele; // ++npars and npars++ differ by when assignment happens. ++npars does the increment first and then will be used
+            }
+            cout << "asserting that the expected parameter order is correct. All good if program did not exit!\n" << endl;
+            assert(param_order_is_correct);
         }
 
         void reinitialize(float initSigFrac){
@@ -148,6 +174,23 @@ class fitManager
             return qvalue;
         }
         float calculate_q(float valX, float valY){} // another signature for 2D fits
+
+        float errorQ(RooFitResult* roo_result){
+            // Inverse of the negative hessian = covariance matrix in the asymtotic limit
+            // https://www.reddit.com/r/math/comments/1o2ou5/why_does_the_inverse_of_the_negative_hessian/
+            // We can alternatively just explicitly invert the covariance to be sure
+            const TMatrixDSym &cov = roo_result->covarianceMatrix();
+            TMatrixDSym inv_cov = cov;
+            inv_cov.InvertFast(); 
+            //cov.Print();
+
+            RooAbsReal *deriv;
+            cout << "Determine derivatives: " << endl;
+            for (int ipar=0; ipar<npars; ++ipar){
+                deriv = (RooAbsReal *)rooSigBkg->derivative(*expected_param_order[ipar], 1);
+                cout << "current derivative of " << actual_param_order[ipar].c_str() << " = " << deriv->getVal() << endl;
+            }
+        }
 
         void insert(float* vals, float weight){
             // with 600 neighbors it seems like the fitTo command takes ~2x longer when using Range() argument which selects the fit range.
@@ -191,7 +234,14 @@ class fitManager
                     //RooFit::Minos(kTRUE)
                     );
 	    NLL = roo_result->minNll();
+            //status = 1    : Covariance was made pos defined
+            //status = 2    : Hesse is invalid
+            //status = 3    : Edm is above max 
+            //status = 4    : Reached call limit
+            //status = 5    : Any other failure
             fitStatus = roo_result->status();
+            cout << "errorQ return code: " << errorQ(roo_result) << endl;
+
             delete roo_result;
             return NLL;
         }

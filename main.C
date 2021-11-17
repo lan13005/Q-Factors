@@ -515,14 +515,14 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 		        distKNN.kNN.pop();
                         
                         // If no weights then set to 1 else Multiply the requested weights together
-                        if (parseFitWeightVars.varStringSet.size()==0){
-                            weight=1;
-                        }
-                        else {
-                            weight=values[newPair.second*nbranches+fitWeightIdxs[0]];
-                            for (int iVar=1; iVar<fitWeightsDim; ++iVar)
-                                weight*=values[newPair.second*nbranches+fitWeightIdxs[iVar]];
-                        }
+                        //if (parseFitWeightVars.varStringSet.size()==0){
+                        //    weight=1;
+                        //}
+                        //else {
+                        weight=values[newPair.second*nbranches+fitWeightIdxs[0]];
+                        for (int iVar=1; iVar<fitWeightsDim; ++iVar)
+                            weight*=values[newPair.second*nbranches+fitWeightIdxs[iVar]];
+                        //}
 
                         // Load neighborValues
                         for (int iVar=0; iVar<discrimVarDim; ++iVar)
