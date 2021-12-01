@@ -173,7 +173,7 @@ class fitManager
             
             return qvalue;
         }
-        float calculate_q(float valX, float valY){} // another signature for 2D fits
+        float calculate_q(float valX, float valY){return 0.0;} // another signature for 2D fits
 
         float errorQ(RooFitResult* roo_result){
             // Inverse of the negative hessian = covariance matrix in the asymtotic limit
@@ -190,6 +190,7 @@ class fitManager
                 deriv = (RooAbsReal *)rooSigBkg->derivative(*expected_param_order[ipar], 1);
                 cout << "current derivative of " << actual_param_order[ipar].c_str() << " = " << deriv->getVal() << endl;
             }
+	    return deriv->getVal();
         }
 
         void insert(float* vals, float weight){
