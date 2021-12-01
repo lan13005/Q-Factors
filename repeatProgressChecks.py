@@ -35,7 +35,8 @@ def checkProgress(nProcess, tag, percentages):
                     nentriesPerProc=end
                     perc_complete = int(100.0*current/end)
                 else:
-                    perc_complete = int(100.0*(current-(end-nentriesPerProc))/nentriesPerProc)
+                    eps = 1e-9
+                    perc_complete = int(100.0*(current-(end-nentriesPerProc)+eps)/(nentriesPerProc+eps))
                 current_percentages[iproc]=perc_complete
 
                 #######################
