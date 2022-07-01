@@ -510,6 +510,8 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                     if(verbose_outputDistCalc){ cout << "These are our neighbors" << endl; }
 
                     int iNeighbor=0;
+                    float eff_entries; // nentries is also returned from the plotting code but we will request it earlier here also for diagnostics
+                    bool keptNeighbor;
 		    while ( distKNN.kNN.empty() == false ){
 		        newPair = distKNN.kNN.top();
 		        distKNN.kNN.pop();
@@ -528,12 +530,14 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                         for (int iVar=0; iVar<discrimVarDim; ++iVar)
                             neighborValues[iVar] = values[newPair.second*nbranches+discrimIdxs[iVar]]; 
 
-                        //bool keptNeighbor = 
-                        fm.insert(neighborValues,weight);
+                        keptNeighbor=fm.insert(neighborValues,weight);
+                        //fm.x->setVal(neighborValues[0]);
+                        //fm.w->setVal(weight);
+                        //fm.rooData->add(RooArgSet(*fm.x,*fm.w),weight);
 
-                        //if (keptNeighbor && saveBranchOfNeighbors){
-                        if (saveBranchOfNeighbors){
-                            neighbors[iNeighbor]=newPair.second;
+                        if (keptNeighbor){ 
+                            if (saveBranchOfNeighbors){
+                                neighbors[iNeighbor]=newPair.second; }
                             ++iNeighbor;
                         }
                         if (verbose_outputDistCalc){
@@ -550,9 +554,10 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
                             }
                         }
 		    }
-		    
+		    eff_entries=fm.rooData->sumEntries();
 		    duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - duration_beginEvent).count();
-		    if(saveEventLevelProcessSpeed){logFile <<	"\tFilled neighbors: +" << duration << "ms" << endl;}
+		    if(saveEventLevelProcessSpeed){logFile <<	"\tFilled (" << iNeighbor << ") neighbors with (" << eff_entries << 
+                                ") effective entries: +" << duration << "ms" << endl;}
 		    
 		    // /////////////////////////////////////////
 		    // Calcuclate q-value

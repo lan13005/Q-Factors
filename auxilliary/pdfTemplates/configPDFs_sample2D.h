@@ -247,6 +247,10 @@ class fitManager
                                   valX > fitRangeX[0] &&
                                   valX < fitRangeX[1] );
             if (keptNeighbor){
+                // For some reason setVal with x takes longer as the program runs whereas w does not. weight takes on a few discrete values whereas val is 
+                //    continuous. If we fix val to some constant then we get the expected behavior of non-increasing setVal times. It doesn't seem possible
+                //    to remove this trend. There is probably something RooFit is hiding under the hood. The other lines of this insert function does not 
+                //    experience an increase in run time as the program runs. 
                 x->setVal(valX);
                 y->setVal(valY);
                 w->setVal(weight);

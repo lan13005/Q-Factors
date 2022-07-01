@@ -108,6 +108,7 @@ void makePlots(bool makeTotal){
             string delim=";";
             std::string token;
             vector<string> tmp;
+            // first parse the elements that have a semicolon in them (which are for 2d plots)
             while ((pos = s.find(delim)) != std::string::npos) {
                 token = s.substr(0, pos);
                 if (std::find(branchesToGet.begin(), branchesToGet.end(), token) == branchesToGet.end()) 
@@ -159,10 +160,14 @@ void makePlots(bool makeTotal){
             cout << "(" << i << ")";
             //dataTree->SetBranchAddress(s.c_str(),&value[i]);
             cout << "[" << s << "]";
-            if(s=="none")
+            if(s=="none"){
                 typeNames.push_back("Float_t");
-            else
+                cout << endl;
+            }
+            else{
                 typeName=setBranchAddress(dataTree, s, &value_l[i], &value_f[i], &value[i]);
+                typeNames.push_back(typeName);
+            }
             typeNames.push_back(typeName);
             nameToIdx[s]=i;
             values.push_back(vector<float>{});

@@ -29,13 +29,18 @@ def checkProgress(nProcess, tag, percentages):
                 #######################
                 # calculate percentages
                 #######################
-                current, end = newestLine.split(" ")[2].rstrip().lstrip().split("/")
-                current, end = int(current), int(end)
-                if iproc==0:
-                    nentriesPerProc=end
-                    perc_complete = int(100.0*current/end)
-                else:
-                    perc_complete = int(100.0*(current-(end-nentriesPerProc))/nentriesPerProc)
+                perc_complete=-9999
+                current=-9999
+                end=-9999
+                if len(newestLine.split(" "))>3:
+                    current, end = newestLine.split(" ")[2].rstrip().lstrip().split("/")
+                    current, end = int(current), int(end)
+                    if iproc==0:
+                        nentriesPerProc=end
+                        perc_complete = int(100.0*current/end)
+                    else:
+                        if nentriesPerProc!=0:
+                            perc_complete = int(100.0*(current-(end-nentriesPerProc))/nentriesPerProc)
                 current_percentages[iproc]=perc_complete
 
                 #######################

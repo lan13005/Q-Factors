@@ -54,18 +54,21 @@ rootFileLocs=[
 #        ,("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_polAMO.root",
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "AMO")
 
+        ("degALL_data_phase1_mEllipse_8288_tLT1_treeFlat_DSelector.root",
+            "tree_4g_flat", "phase1")
+
 #        ("zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root",
 #            "tree_4g_flat", "flatEtapi_b1_Mpi0VsMeta")
 #        ("/d/grid17/ln16/q-values-3/logs/flatEtapi_b1_Mpi0_1111/postQVal_flatTree_flatEtapi_b1_Mpi0_1111.root",
 #            "tree_4g_flat", "flatEtapi_b1_Mpi0_MetaIndep")
-        ("zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root",
-            "tree_4g_flat", "test")
+#        ("zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root",
+#            "tree_4g_flat", "test")
 
 #        ("degALL_data_2017_mEllipse_8288_tLT1_chi13_omegacut_treeFlat_DSelector.root", 
 #            "tree_4g_flat", "2017_2D")
         ]
 
-_SET_fitWeights="none" 
+_SET_fitWeights="AccWeight" 
 _SET_sigWeights="AccWeight" # Just for makePlots to draw with appropriate weights
 _SET_altWeights="AccWeight;weightBS" # Just for makePlots to draw with appropriate weights 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
@@ -73,9 +76,9 @@ _SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3"
 _SET_discrimVars="Meta"
 _SET_extraVars=""
 _SET_neighborReqs=""#"Meta>0.36;Meta<0.75;Mpi0>0.085;Mpi0<0.185"
-_SET_nProcess=1
-_SET_kDim=50
-_SET_nentries=75
+_SET_nProcess=36
+_SET_kDim=300
+_SET_nentries=-1
 _SET_numberEventsToSavePerProcess=2
 # -------- ADVANCED ---------
 _SET_standardizationType="range" 
@@ -87,7 +90,7 @@ _SET_runTag=""
 _SET_seedShift=1341 
 _SET_saveBShistsAlso=0 
 _SET_alwaysSaveTheseEvents=""
-_SET_saveBranchOfNeighbors=1
+_SET_saveBranchOfNeighbors=0
 _SET_saveMemUsage=1 
 _SET_saveEventLevelProcessSpeed=1 #do not turn off 
 _SET_emailWhenFinished="" 

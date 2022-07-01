@@ -98,7 +98,6 @@ class fitManager
 	fitManager(string iProcess){ 
             /////////////// VARIABLES
             x = new RooRealVar{("x"+iProcess).c_str(),"Mass GeV",(fitRangeX[1]-fitRangeX[0])/2+fitRangeX[0],fitRangeX[0],fitRangeX[1]};
-            //x = new RooRealVar{("x"+iProcess).c_str(),"Mass GeV",(fitRangeX[1]-fitRangeX[0])/2+fitRangeX[0],fitRangeX[0],fitRangeX[1]};
             //x->setRange(("roo_fitRangeMeta_"+iProcess).c_str(),fitRangeX[0], fitRangeX[1]);
             x->setBins(100);
             w = new RooRealVar{("w"+iProcess).c_str(), "Weight", 0, -10, 10}; // Weights can take a wide range
@@ -192,23 +191,30 @@ class fitManager
             }
         }
 
-        void insert(float* vals, float weight){
+        bool insert(float* vals, float weight){
             // with 600 neighbors it seems like the fitTo command takes ~2x longer when using Range() argument which selects the fit range.
             // This is equivalent to shrinking the dataset range and fitting over the full range which will save time.
             // It might be useful to think of setting a fit range as to lower the effective number of nearest neighbors. Another thing that lowers
             // the effective number of neighbors is any weights we apply to the filling of the histograms
             float valX = vals[0];
-            //bool keptNeighbor = ( valX > fitRangeX[0] && 
-            //                      valX < fitRangeX[1]
-            //                    );
-            //if (keptNeighbor){
-            x->setVal(valX);
-            w->setVal(weight);
-            // w will get overwritten here when adding to RooDataSet but actually does not pick up the value. So we cannot use 
-            // w.getVal() but the dataset will be weighted: https://root-forum.cern.ch/t/fit-to-a-weighted-unbinned-data-set/33495
-            rooData->add(RooArgSet(*x,*w),weight);
-            //}
-            //return keptNeighbor;
+            bool keptNeighbor = ( valX > fitRangeX[0] && 
+                                  valX < fitRangeX[1]
+                                );
+            if (keptNeighbor){
+                // For some reason setVal with x takes longer as the program runs whereas w does not. weight takes on a few discrete values whereas val is 
+                //    continuous. If we fix val to some constant then we get the expected behavior of non-increasing setVal times. It doesn't seem possible
+                //    to remove this trend. There is probably something RooFit is hiding under the hood. The other lines of this insert function does not 
+                //    experience an increase in run time as the program runs. 
+                // fit function below also seems to increase in execution time for an unknown reason. In general it just seems like RooFit accumulates
+                //    mass as fits are run sequentially. Similar to a property we are seeing with memory usage consistently going up even though 
+                //    nothing new is created manually. The response I got before was that RooFit keeps an "arena" and it doesnt clear things.
+                x->setVal(valX);
+                w->setVal(weight);
+                // w will get overwritten here when adding to RooDataSet but actually does not pick up the value. So we cannot use 
+                // w.getVal() but the dataset will be weighted: https://root-forum.cern.ch/t/fit-to-a-weighted-unbinned-data-set/33495
+                rooData->add(RooArgSet(*x,*w),weight);
+            }
+            return keptNeighbor;
         }
 
         RooArgSet* getParameters(){ 
