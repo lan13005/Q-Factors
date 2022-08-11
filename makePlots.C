@@ -168,12 +168,14 @@ void makePlots(bool makeTotal){
                 typeName=setBranchAddress(dataTree, s, &value_l[i], &value_f[i], &value[i]);
                 typeNames.push_back(typeName);
             }
-            typeNames.push_back(typeName);
             nameToIdx[s]=i;
             values.push_back(vector<float>{});
             values[i].reserve(nentries);
             ++i;
         }
+
+        cout << "Asserting branchesToGet and typeNames vector matches...";
+        assert(branchesToGet.size()==typeNames.size());
 
         cout << "LOADING DATA INTO MEMORY" << endl;
 	for (int ientry=0; ientry<nentries; ientry++)

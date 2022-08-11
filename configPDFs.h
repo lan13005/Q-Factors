@@ -175,6 +175,7 @@ class fitManager
         float calculate_q(float valX, float valY){} // another signature for 2D fits
 
         float errorQ(RooFitResult* roo_result){
+            // This function isn't really completed yet to extract the errors on the Q-values
             // Inverse of the negative hessian = covariance matrix in the asymtotic limit
             // https://www.reddit.com/r/math/comments/1o2ou5/why_does_the_inverse_of_the_negative_hessian/
             // We can alternatively just explicitly invert the covariance to be sure
@@ -246,7 +247,7 @@ class fitManager
             //status = 4    : Reached call limit
             //status = 5    : Any other failure
             fitStatus = roo_result->status();
-            cout << "errorQ return code: " << errorQ(roo_result) << endl;
+            //cout << "errorQ return code: " << errorQ(roo_result) << endl;
 
             delete roo_result;
             return NLL;
