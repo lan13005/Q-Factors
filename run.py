@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import subprocess
 import os
 import sys
@@ -16,6 +18,7 @@ start_time = time.time()
 # sigWeights: semicolon separated names of the branches to draw with the makePlots program. These are the "Q" plots. Q_tot will be weighted by the product of the branch values in sigWeights. Q_sig will be weighted by sigWeights AND the newly computed q-factor. Q_tot is weighted by sigWeights. "none" to set weights to 1
 # altWeights: semicolon separted names of the branches to draw with the makePlots program. These are the "SB" plots. SB_sig will be weighted by the product of the branch values in altWeights. SB_tot is not weighted. "none" to set weights to 1
 # varStringBase: semicolon separated branch names to get phase space variables for distance calculation
+# varIsCircular: semicolon separated branch names to used modified distance calcuation on. Assumes circular, so that [0,2pi] are next to each other. Useful for phi vars
 # discrimVars: semicolon separated branch names to get discriminating/reference variables
 # extraVars: semicolon separated branch names to get extra variables. One use for this is to load extra variables to make a selection on the set of neighbors (i.e. fitrange). Then the variable can be used in neighborReqs, for instance.
 # neighborReqs: requirements for the neighbors. Useful to set a fit range. This can be useful if you are trying to compare to sideband subtraction where sideband subtraction might require a larger range than you want q-factors to consider
@@ -54,8 +57,8 @@ rootFileLocs=[
 #        ,("degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat_polAMO.root",
 #            "degALL_data_2017_mEllipse_8288_chi13_tpLT05_pipicut_omegacut_tree_flat", "AMO")
 
-        ("degALL_data_phase1_mEllipse_8288_tLT1_treeFlat_DSelector.root",
-            "tree_4g_flat", "phase1")
+#        ("degALL_data_phase1_mEllipse_8288_tLT1_treeFlat_DSelector.root",
+#            "tree_4g_flat", "phase1")
 
 #        ("zb1_plus_etapi_as_4g_dataset/b1_and_etapi_mEllipse_8288_chi13_tpLT05_omegacut_treeFlat_subset.root",
 #            "tree_4g_flat", "flatEtapi_b1_Mpi0VsMeta")
@@ -66,18 +69,23 @@ rootFileLocs=[
 
 #        ("degALL_data_2017_mEllipse_8288_tLT1_chi13_omegacut_treeFlat_DSelector.root", 
 #            "tree_4g_flat", "2017_2D")
+
+        ("flatetapi_b1_mc_081222/bkgndSample_recon_acc_flat_subset_1200k.root",
+            "kin","flatetapi_b1")
+
         ]
 
 _SET_fitWeights="AccWeight" 
 _SET_sigWeights="AccWeight" # Just for makePlots to draw with appropriate weights
 _SET_altWeights="AccWeight;weightBS" # Just for makePlots to draw with appropriate weights 
 #_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;cosTheta_X_cm;Phi;Mpi0eta;Mpi0g3;Mpi0g4;ph124Rest_angle_g34;mandelstam_teta;ph123Rest_angle_g34"#phi_X_lab" 
-_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3" 
-_SET_discrimVars="Meta"
+_SET_varStringBase="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3;Mpi0g4" 
+_SET_varIsCircular="phi_eta_gj"
+_SET_discrimVars="Mpi0;Meta"
 _SET_extraVars=""
-_SET_neighborReqs=""#"Meta>0.36;Meta<0.75;Mpi0>0.085;Mpi0<0.185"
-_SET_nProcess=36
-_SET_kDim=300
+_SET_neighborReqs="Meta>0.36;Meta<0.75;Mpi0>0.085;Mpi0<0.185"
+_SET_nProcess=48
+_SET_kDim=200
 _SET_nentries=-1
 _SET_numberEventsToSavePerProcess=2
 # -------- ADVANCED ---------
@@ -198,6 +206,7 @@ def reconfigureSettings(fileName, combo, _SET_rootFileLoc, _SET_rootTreeName, _S
     selectedVar = [varVec[ele] for ele in combo]
     _SET_varString=";".join(selectedVar)
     spawnProcessChangeSetting("s_phaseVar",_SET_varString,fileName,True)
+    spawnProcessChangeSetting("s_circularVar",_SET_varIsCircular,fileName,True)
 
     spawnProcessChangeSetting("nProcess",_SET_nProcess,fileName,False)
     spawnProcessChangeSetting("kDim",_SET_kDim,fileName,False)

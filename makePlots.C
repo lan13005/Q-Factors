@@ -18,20 +18,17 @@ vector<string> histsToMake={
     "phi_eta_gj",
     "cosTheta_eta_hel",
     "phi_eta_hel",
-    "ph124Rest_angle_g34",
-    "ph123Rest_angle_g34",
     "mandelstam_teta",
     "vanHove_omega",
     "Phi",
     "Metap",
     "Mpi0p",
-    //"Mpi0;qvalue_Meta",
-    //"Meta;qvalue_Meta",
     "Mpi0;Meta",
     "Mpi0eta;cosTheta_eta_gj",
     "Mpi0eta;cosTheta_eta_hel"
 };
 bool verbose=true;
+string truthBranch="isCorrectCombo"; //"is_truecombo";
 
 void makePlots(bool makeTotal){
 	gStyle->SetOptFit(111);
@@ -89,11 +86,15 @@ void makePlots(bool makeTotal){
             exit(0);
         }
 
-        TBranch* br = (TBranch*)dataTree->GetListOfBranches()->FindObject("is_truecombo");
+        cout << "\nSHOULD WE OVERLAY TRUTH INFORMATION?" << endl;
+        TBranch* br = (TBranch*)dataTree->GetListOfBranches()->FindObject(truthBranch.c_str());
         if (br){
-            dataTree->SetBranchAddress("is_truecombo",&is_truecombo);
-            cout << "is_truecombo branch exists - will overlay the matchedThrown distributions for you" << endl;
+            dataTree->SetBranchAddress(truthBranch.c_str(),&is_truecombo);
+            cout << "YES! " << truthBranch << " branch exists - will overlay the matchedThrown distributions for you" << endl;
         }
+        else
+            cout << "NO! " << truthBranch << " branch does not exist - no worries, just wont plot it" << endl;
+        cout << endl;
         
         // //////////////////////////////
         // LOADING BRANCHES OF VARIABLES TO DRAW

@@ -85,61 +85,70 @@ class standardizeArray{
          		min_inputVector = DBL_MAX;
                         std::cout << "\nStarting range std" << std::endl;
 			for (int ientry=0; ientry<nentries; ++ientry){
-				if (inputVector[ientry*nbranches+varIdx] > max_inputVector){
-					max_inputVector = inputVector[ientry*nbranches+varIdx];
-				}
-				if (inputVector[ientry*nbranches+varIdx] < min_inputVector){
-					min_inputVector = inputVector[ientry*nbranches+varIdx];
-				}
+			    if (inputVector[ientry*nbranches+varIdx] > max_inputVector)
+			        max_inputVector = inputVector[ientry*nbranches+varIdx];
+			    if (inputVector[ientry*nbranches+varIdx] < min_inputVector)
+			        min_inputVector = inputVector[ientry*nbranches+varIdx];
 			}
 			for (int ientry=0; ientry<nentries; ++ientry){
-				inputVector[ientry*nbranches+varIdx] = (inputVector[ientry*nbranches+varIdx]-min_inputVector)/(max_inputVector-min_inputVector);
+			    inputVector[ientry*nbranches+varIdx] = (inputVector[ientry*nbranches+varIdx]-min_inputVector)/(max_inputVector-min_inputVector);
 			}
                         std::cout << "Max,min: " << max_inputVector << "," << min_inputVector << std::endl;
                         std::cout << "--Finished Range standardizing " << std::endl;
 		}
 		
-		float calcStd(std::vector<float> &inputVector, int varIdx, long long nentries, int nbranches){
-			float local_std=0;
-			float diff=0;
-			float mean=0;
-			for (int ientry=0; ientry<nentries; ++ientry){
-			    mean+=inputVector[ientry*nbranches+varIdx];
-			} 
-			mean/=nentries;
-			for (int ientry=0; ientry<nentries; ++ientry){
-                                //std::cout << "mean: " << mean << std::endl;
-				diff = (inputVector[ientry*nbranches+varIdx]-mean);
-                                //std::cout << "diff: " << diff << std::endl;
-				local_std += diff*diff;
-			}
-			local_std /= nentries;
-                        std::cout << "STD: " << local_std << std::endl;
-                        std::cout << "--Finished Std standardizing " << std::endl;
-			return sqrt(local_std);
-		}
-		void stdevStandardization(std::vector<float> &inputVector, int varIdx, long long nentries, int nbranches){
-			float std = calcStd(inputVector, varIdx, nentries, nbranches);
-			for (int ientry=0; ientry < nentries; ++ientry){
-				inputVector[ientry*nbranches+varIdx] = inputVector[ientry*nbranches+varIdx]/std; 
-			} 
-                        std::cout << "Finished Stdev Standardization" << endl;
-		}
+                // THIS FUNCTION SHOULD NOT BE USED AS IT DOES NOT WORK WITH "CIRCULAR" VARIABLES UPDATE
+//		float calcStd(std::vector<float> &inputVector, int varIdx, long long nentries, int nbranches){
+//			float local_std=0;
+//			float diff=0;
+//			float mean=0;
+//			for (int ientry=0; ientry<nentries; ++ientry){
+//			    mean+=inputVector[ientry*nbranches+varIdx];
+//			} 
+//			mean/=nentries;
+//			for (int ientry=0; ientry<nentries; ++ientry){
+//                            //std::cout << "mean: " << mean << std::endl;
+//			    diff = (inputVector[ientry*nbranches+varIdx]-mean);
+//                            //std::cout << "diff: " << diff << std::endl;
+//			    local_std += diff*diff;
+//			}
+//			local_std /= nentries;
+//                        std::cout << "STD: " << local_std << std::endl;
+//                        std::cout << "--Finished Std standardizing " << std::endl;
+//			return sqrt(local_std);
+//		}
+//		void stdevStandardization(std::vector<float> &inputVector, int varIdx, long long nentries, int nbranches){
+//			float std = calcStd(inputVector, varIdx, nentries, nbranches);
+//			for (int ientry=0; ientry < nentries; ++ientry){
+//			    inputVector[ientry*nbranches+varIdx] = inputVector[ientry*nbranches+varIdx]/std; 
+//			} 
+//                        std::cout << "Finished Stdev Standardization" << endl;
+//		}
 };
 
 // our distance calculation between two phase points
-float calc_distance( int dim, float* phaseSpace_1, float* phaseSpace_2, bool verbose_outputDistCalc){
-	float sum = 0;
-	float diff=0;
-        if(verbose_outputDistCalc){std::cout << "New event, new sum = " << sum << std::endl;}
-	for (int i=0; i<dim; ++i){
-		diff = phaseSpace_1[i]-phaseSpace_2[i];
-		sum += abs(diff);//diff*diff;
-                if(verbose_outputDistCalc){
-                    std::cout << "phasePoint1["<<i<<"]="<<phaseSpace_1[i]<<", phasePoint2["<<i<<"]="<<phaseSpace_2[i]<<" --- abs distance=" << abs(diff) << "---- total so far="<<sum<<std::endl;
-		}
-	}
-	return sum;
+//   the norm matters! order is not preserved when computing differnet lp norms for a set of vectors!
+float calc_distance( int dim, float* phaseSpace_1, float* phaseSpace_2, set<int> &circularIDs, bool verbose_outputDistCalc){
+    float sum = 0;
+    float diff=0;
+    if(verbose_outputDistCalc){std::cout << "New event, new sum = " << sum << std::endl;}
+    for (int i=0; i<dim; ++i){
+        // for "circular" variables we need to shift backwards by 2pi if distance is greater than 2pi - this takes the shorter distance
+        //    distances are calculated post standardization
+        if (circularIDs.find(i) != circularIDs.end()){ 
+            diff = abs(phaseSpace_1[i]-phaseSpace_2[i]);
+            if (diff > 0.5)
+                diff = 2*(1.0-diff); // need to multiply by 2 so that the maximum distance is 1
+        }
+        else{ diff = phaseSpace_1[i]-phaseSpace_2[i]; }// dont need to abs first in this case, we will square this number anyways
+        sum += diff*diff;
+
+        if(verbose_outputDistCalc){
+            std::cout << "phasePoint1["<<i<<"]="<<phaseSpace_1[i]<<", phasePoint2["<<i<<"]="<<phaseSpace_2[i]
+                <<" --- distance=" << abs(diff) << "---- total so far="<<sum<<std::endl;
+        }
+    }
+    return sqrt(sum);
 }
 
 

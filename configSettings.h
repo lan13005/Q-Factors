@@ -7,26 +7,27 @@ using namespace std;
 // ------------------------------------------------------
 // DO NOT MODIFY THIS SECTION. GETS OVERWRITTEN BY RUN.PY
 // DO NOT MODIFY THIS SECTION. GETS OVERWRITTEN BY RUN.PY
-string cwd="/d/grid17/ln16/q-values-3";
-string rootFileLoc="degALL_data_phase1_mEllipse_8288_tLT1_treeFlat_DSelector.root";
-string rootTreeName="tree_4g_flat";
-string fileTag="phase1_1111";
+string cwd="/d/grid17/ln16/QFactors";
+string rootFileLoc="flatetapi_b1_mc_081222/bkgndSample_recon_acc_flat_subset_1200k.root";
+string rootTreeName="kin";
+string fileTag="flatetapi_b1_11111";
 string runTag="";
 string s_fitWeight="AccWeight";
 string s_sigWeight="AccWeight";
 string s_altWeight="AccWeight;weightBS";
-string s_discrimVar="Meta";
+string s_discrimVar="Mpi0;Meta";
 string s_extraVar="";
-string s_neighborReqs="";
-string s_phaseVar="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3";
+string s_neighborReqs="Meta>0.36;Meta<0.75;Mpi0>0.085;Mpi0<0.185";
+string s_phaseVar="cosTheta_eta_gj;phi_eta_gj;Mpi0eta;Mpi0g3;Mpi0g4";
+string s_circularVar="phi_eta_gj";
 string standardizationType="range";
 string alwaysSaveTheseEvents="";
 bool saveMemUsuage=1;
-int nProcess=36;
-int kDim=300;
-const int ckDim=300; // same as kDim but just of const int type
-const int phaseSpaceDim=4;
-const int discrimVarDim=1;
+int nProcess=48;
+int kDim=200;
+const int ckDim=200; // same as kDim but just of const int type
+const int phaseSpaceDim=5;
+const int discrimVarDim=2;
 const int extraVarDim=0;
 const int fitWeightsDim=1;
 const int sigWeightsDim=1;

@@ -62,10 +62,12 @@ class QFactorAnalysis{
                 int nbranches; // number of branches to get
                 parseVarString parseNeighborReqs; // Parse the semicolon separated variable string
                 parseVarString parsePhaseSpace; // Parse the semicolon separated variable string
+                parseVarString parseCircular; 
                 parseVarString parseDiscrimVars;
                 parseVarString parseExtraVars;
                 parseVarString parseFitWeightVars;
                 map<string,int> nameToIdx; // maps a branch (string) to the index inside values, values is a vector of vectors 
+                set<int> circularIDs; // map of indices of branches (following indexing in nameToIdx) to denote a "circular variable"
                 int phaseIdxs[phaseSpaceDim]; // to avoid rereading we will save the indicies
                 int discrimIdxs[discrimVarDim];
                 int extraIdxs[extraVarDim];

@@ -24,6 +24,7 @@ void QFactorAnalysis::initialize(string rootFileLoc, string rootTreeName){
 
         cout << "\nSET BRANCH ADDRESSES OF REQUESTED BRANCHES: "<< endl;
 	parsePhaseSpace.parseString(s_phaseVar);
+	parseCircular.parseString(s_circularVar);
 	parseDiscrimVars.parseString(s_discrimVar);
 	parseExtraVars.parseString(s_extraVar);
 	parseFitWeightVars.parseString(s_fitWeight);
@@ -56,8 +57,9 @@ void QFactorAnalysis::initialize(string rootFileLoc, string rootTreeName){
             typeName=setBranchAddress(dataTree, s, &value_l[ibranch], &value_f[ibranch], &value[ibranch]);
             typeNames.push_back(typeName);
             nameToIdx[s]=ibranch;
-            //values.push_back(vector<float>{});
-            //values[ibranch].reserve(nentries);
+            
+            if ( find(parseCircular.varStringSet.begin(), parseCircular.varStringSet.end(), s) != parseCircular.varStringSet.end() )
+                circularIDs.insert(ibranch);
             ++ibranch;
         }
         values.reserve(nentries*nbranches);
@@ -185,7 +187,9 @@ void QFactorAnalysis::loadData(){
                 standarizationClass.rangeStandardization(values,phaseIdxs[iVar],nentries,nbranches);
             }
             else if (standardizationType=="std"){
-                standarizationClass.stdevStandardization(values,phaseIdxs[iVar],nentries,nbranches);
+                //standarizationClass.stdevStandardization(values,phaseIdxs[iVar],nentries,nbranches);
+                cout << " ** STD STANDARDIZATION NO LONGER SUPPORTED ** " << endl;
+                exit(0);
             }
         }
 
@@ -497,7 +501,7 @@ void QFactorAnalysis::runQFactorThreaded(int iProcess){
 		            for ( int iVar=0; iVar<phaseSpaceDim; ++iVar ){
                                 phasePoint2[iVar] = values[jentry*nbranches+phaseIdxs[iVar]];
                             }
-		            distance = calc_distance(phaseSpaceDim,phasePoint1,phasePoint2,verbose_outputDistCalc);
+		            distance = calc_distance(phaseSpaceDim,phasePoint1,phasePoint2,circularIDs,verbose_outputDistCalc);
 		            if ( verbose_outputDistCalc ) { cout << "event (i,j)=(" << ientry << "," << jentry << ") has distance=" << distance << endl;} 
 		            distKNN.insertPair(make_pair(distance,jentry));
 		        }
